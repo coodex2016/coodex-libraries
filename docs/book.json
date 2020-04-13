@@ -1,0 +1,22 @@
+{
+  "title": "Coodex libraries",
+  "author": "Shen Hainan <jujus.shen@126.com>",
+  "language": "zh-hans",
+  "plugins": [
+    "back-to-top-button",
+    "chapter-fold",
+    "code",
+    "-lunr",
+    "-search",
+    "search-pro",
+    "tbfed-pagefooter",
+    "popup"
+  ],
+  "pluginsConfig": {
+    "tbfed-pagefooter": {
+      "copyright":"Copyright &copy coodex.org 2020",
+      "modify_label": "",
+      "modify_format": "YYYY-MM-DD HH:mm:ss"
+    }
+  }
+}

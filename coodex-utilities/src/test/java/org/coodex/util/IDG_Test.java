@@ -16,22 +16,17 @@
 
 package org.coodex.util;
 
-public abstract class SelectableFactoryLoaderImpl<PARAM, PROD, F extends SelectableFactory<PROD, PARAM>>
-        extends SelectableServiceLoaderImpl<PARAM, F>
-        implements SelectableFactoryLoader<PARAM, PROD, F> {
+import org.coodex.id.IDGenerator;
 
-    public SelectableFactoryLoaderImpl() {
-    }
+import java.util.StringJoiner;
 
-    public SelectableFactoryLoaderImpl(F defaultService) {
-        super(defaultService);
-    }
+public class IDG_Test {
 
-    @Override
-    public PROD build(PARAM param) {
-        SelectableFactory<PROD, PARAM> factory = select(param);
-        if (factory != null)
-            return factory.build(param);
-        throw new RuntimeException("none factory found for :" + param);
+    public static void main(String[] args) {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (int i = 0; i < 1000; i++) {
+            joiner.add(IDGenerator.genId());
+        }
+        System.out.println(joiner.toString());
     }
 }

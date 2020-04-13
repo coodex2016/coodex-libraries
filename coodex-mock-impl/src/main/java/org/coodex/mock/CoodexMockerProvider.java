@@ -41,7 +41,6 @@ import static org.coodex.util.GenericTypeHelper.*;
  *
  * @author Davidoff
  */
-@SuppressWarnings("unused")
 public class CoodexMockerProvider implements MockerProvider {
 
 
@@ -195,8 +194,7 @@ public class CoodexMockerProvider implements MockerProvider {
     private static <A extends Annotation> A getAnnotation(Class<A> annotationClass, Annotation[] annotations) {
         for (Annotation annotation : annotations) {
             if (annotation.annotationType().equals(annotationClass)) {
-                //noinspection unchecked
-                return (A) annotation;
+                return cast(annotation);
             }
         }
         return null;
@@ -306,16 +304,14 @@ public class CoodexMockerProvider implements MockerProvider {
             if (t instanceof TypeVariable) {
                 throw new MockException("Cannot mock collection: " + collectionsContext);
             }
-            //noinspection unchecked
-            result = mockCollection((Class<? extends Collection<?>>) c, t, 0, annotations);
+            result = mockCollection(cast(c), t, 0, annotations);
         } else if (Map.class.isAssignableFrom(c)) {
             Type key = solveFromType(Map.class.getTypeParameters()[0], collectionsContext);
             Type value = solveFromType(Map.class.getTypeParameters()[1], collectionsContext);
             if (key instanceof TypeVariable || value instanceof TypeVariable) {
                 throw new MockException("Cannot mock map: " + collectionsContext);
             }
-            //noinspection unchecked
-            result = mockMap((Class<? extends Map<?, ?>>) c, 0, key, value, annotations);
+            result = mockMap(cast(c), 0, key, value, annotations);
         } else {
             result = NOT_COLLECTION;
         }
@@ -400,7 +396,7 @@ public class CoodexMockerProvider implements MockerProvider {
                         Object instance;
                         if (pojoInfo.getRowType().isInterface()) {
                             instance = Proxy.newProxyInstance(this.getClass().getClassLoader(),
-                                    new Class[]{pojoInfo.getRowType()},
+                                    new Class<?>[]{pojoInfo.getRowType()},
                                     mockInvocationHandler);
                         } else {
                             Enhancer enhancer = new Enhancer();
@@ -560,13 +556,6 @@ public class CoodexMockerProvider implements MockerProvider {
     }
 
 
-//    @Override
-//    public <T> T mock(final Class<T> type, final Annotation... annotations) {
-//        //noinspection unchecked
-//        return (T) mock(type, type, annotations);
-//    }
-
-
     @Override
     public Object mock(final Type type, final Type context, Annotation... annotations) {
         if (annotations == null) {
@@ -596,8 +585,7 @@ public class CoodexMockerProvider implements MockerProvider {
         return null;
     }
 
-    @SuppressWarnings("rawtypes")
-    private Map buildMapInstance(Class<? extends Map> mapClass, int d, Annotation... annotations) {
+    private Map<?,?> buildMapInstance(Class<? extends Map<?,?>> mapClass, int d, Annotation... annotations) {
         if (Map.class.equals(mapClass)) {
             return DIMENSIONS_CONTEXT.get().ordered(d) ? new LinkedHashMap<>() : new HashMap<>();
         }
@@ -652,7 +640,7 @@ public class CoodexMockerProvider implements MockerProvider {
     }
 
     private Object getProxyObject(final Object instance, Class<?> interfaceClass) {
-        return Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceClass},
+        return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{interfaceClass},
                 (proxy, method, args) -> {
                     Method targetMethod = instance.getClass().getMethod(method.getName(), method.getParameterTypes());
                     targetMethod.setAccessible(true);
@@ -701,16 +689,14 @@ public class CoodexMockerProvider implements MockerProvider {
                 return innerMock(componentType, annotations);
             }
 
-            @SuppressWarnings("rawtypes")
             @Override
             public Object get() {
                 if (DIMENSIONS_CONTEXT.get().nullable(d))
                     return null;
-                Collection collection = buildCollectionInstance(collectionClass, d, annotations);
+                Collection<?> collection = buildCollectionInstance(collectionClass, d, annotations);
                 CollectionDimensions dimensions = DIMENSIONS_CONTEXT.get();
                 for (int i = 0, size = dimensions.getSize(d); i < size; i++) {
-                    //noinspection unchecked
-                    collection.add(mockElementOfCollection());
+                    collection.add(cast(mockElementOfCollection()));
                 }
                 return collection;
             }
@@ -773,15 +759,14 @@ public class CoodexMockerProvider implements MockerProvider {
                         keyMock;
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public Object get() {
                 if (DIMENSIONS_CONTEXT.get().nullable(d)) return null;
-                @SuppressWarnings("rawtypes") Map instance = buildMapInstance(mapClass, d, annotations);
+                Map<?,?> instance = buildMapInstance(mapClass, d, annotations);
                 int size = DIMENSIONS_CONTEXT.get().getSize(d);
                 int retry = size * 3;
                 while (instance.size() < size && retry-- > 0) {
-                    instance.put(mockKey(), mockValue());
+                    instance.put(cast(mockKey()), cast(mockValue()));
                 }
                 return instance;
             }
@@ -1052,7 +1037,7 @@ public class CoodexMockerProvider implements MockerProvider {
         private Mock.Depth depth;
 
         TypeAssignation(PojoInfo pojoInfo) {
-            depth = (Mock.Depth) pojoInfo.getRowType().getAnnotation(Mock.Depth.class);
+            depth = pojoInfo.getRowType().getAnnotation(Mock.Depth.class);
             for (PojoProperty pojoProperty : pojoInfo.getProperties()) {
                 properties.put(pojoProperty.getName(), pojoProperty.getAnnotations());
             }

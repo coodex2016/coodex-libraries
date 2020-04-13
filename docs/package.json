@@ -1,8 +1,0 @@
-{
-  "name": "org.coodex.libraries.docs",
-  "version": "0.5.0-SNAPSHOT",
-  "description": "coodex libraries documents",
-  "main": "index.js",
-  "author": "shenhainan",
-  "license": "Apache 2.0"
-}

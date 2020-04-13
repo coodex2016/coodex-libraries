@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package org.coodex.util;
+package org.coodex.id;
 
-public abstract class SelectableFactoryLoaderImpl<PARAM, PROD, F extends SelectableFactory<PROD, PARAM>>
-        extends SelectableServiceLoaderImpl<PARAM, F>
-        implements SelectableFactoryLoader<PARAM, PROD, F> {
+import org.coodex.util.Common;
 
-    public SelectableFactoryLoaderImpl() {
-    }
-
-    public SelectableFactoryLoaderImpl(F defaultService) {
-        super(defaultService);
-    }
-
+public class UUIDGeneratorService implements IDGeneratorService {
     @Override
-    public PROD build(PARAM param) {
-        SelectableFactory<PROD, PARAM> factory = select(param);
-        if (factory != null)
-            return factory.build(param);
-        throw new RuntimeException("none factory found for :" + param);
+    public String generateId() {
+        return Common.getUUIDStr();
     }
 }

@@ -302,7 +302,7 @@ public class GenericTypeHelper {
                 } else {
                     if (!c.isInterface())
                         process(c.getGenericSuperclass());
-                    for (Type _interface : ((Class<?>) x).getGenericInterfaces()) {
+                    for (Type _interface : c.getGenericInterfaces()) {
                         process(_interface);
                     }
                 }

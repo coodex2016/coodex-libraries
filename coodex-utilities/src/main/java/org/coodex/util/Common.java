@@ -25,6 +25,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,6 +42,7 @@ import static java.lang.Long.parseLong;
 /**
  * @author davidoff
  */
+@SuppressWarnings("unused")
 public class Common {
 
     public static final String PATH_SEPARATOR = System.getProperty("path.separator");
@@ -64,9 +67,9 @@ public class Common {
 
     private final static String DEFAULT_DELIM = ".-_ /\\";
 
-    private static ThreadLocal<SingletonMap<String, DateFormat>> threadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<SingletonMap<String, DateFormat>> threadLocal = new ThreadLocal<>();
 
-    private static SelectableServiceLoader<Class<?>, StringConvertWithDefaultValue> converterServiceLoader
+    private static final SelectableServiceLoader<Class<?>, StringConvertWithDefaultValue> converterServiceLoader
             = new LazySelectableServiceLoader<Class<?>, StringConvertWithDefaultValue>() {
     };
 
@@ -211,19 +214,13 @@ public class Common {
     }
 
     public static String sha1(String content) {
-        byte[] buf = content == null ? new byte[0] : content.getBytes();
+        return sha1(content, StandardCharsets.UTF_8);
+    }
+
+    public static String sha1(String content, Charset charset) {
+        byte[] buf = (content == null) ? new byte[0] : content.getBytes(charset);
         return DigestHelper.sha1(buf);
     }
-//    private static Singleton<SelectableServiceLoader<Class<?>, StringConvertWithDefaultValue>> converterServiceLoader
-//            = new Singleton<SelectableServiceLoader<Class<?>, StringConvertWithDefaultValue>>(
-//            new Singleton.Builder<SelectableServiceLoader<Class<?>, StringConvertWithDefaultValue>>() {
-//                @Override
-//                public SelectableServiceLoader<Class<?>, StringConvertWithDefaultValue> build() {
-//                    return new SelectableServiceLoader<Class<?>, StringConvertWithDefaultValue>() {
-//                    };
-//                }
-//            }
-//    );
 
     public static <T> boolean inArray(T el, T[] array) {
         return findInArray(el, array) >= 0;
@@ -589,20 +586,23 @@ public class Common {
 //        return getNewFile(fileName);
 //    }
 
-    public static String concat(List<String> list, String split) {
+    public static String concat(Collection<String> list, String split) {
         if (list == null) return null;
         switch (list.size()) {
             case 0:
                 return "";
             case 1:
-                return list.get(0);
+                return list.iterator().next();
             default:
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < list.size(); i++) {
-                    if (i > 0) builder.append(split);
-                    builder.append(list.get(i));
-                }
-                return builder.toString();
+                StringJoiner joiner = new StringJoiner(split);
+                list.forEach(joiner::add);
+                return joiner.toString();
+//                StringBuilder builder = new StringBuilder();
+//                for (int i = 0; i < list.size(); i++) {
+//                    if (i > 0) builder.append(split);
+//                    builder.append(list.get(i));
+//                }
+//                return builder.toString();
         }
     }
 
@@ -625,6 +625,20 @@ public class Common {
         }
         return cast(defaultValue.convertTo(str, value, cls));
     }
+
+
+//    public static <T> T to(String str, Supplier<T> defaultSupplier) {
+//        if (defaultSupplier == null) {
+//            if (str == null) return null;
+//            throw new NullPointerException("defaultValue Supplier is null.");
+//        }
+//        return getT(str, GenericTypeHelper.typeToClass(
+//                GenericTypeHelper.solveFromInstance(
+//                        Supplier.class.getTypeParameters()[0],
+//                        defaultSupplier
+//                )
+//        ), defaultSupplier);
+//    }
 
     public static int toInt(String str, Supplier<Integer> valueSupplier) {
         try {
@@ -939,6 +953,19 @@ public class Common {
         return dateToCalendar(strToDate(str, format));
     }
 
+    public static byte[] long2Bytes(long data) {
+        return new byte[]{
+                (byte) ((data >> 56) & 0xff),
+                (byte) ((data >> 48) & 0xff),
+                (byte) ((data >> 40) & 0xff),
+                (byte) ((data >> 32) & 0xff),
+                (byte) ((data >> 24) & 0xff),
+                (byte) ((data >> 16) & 0xff),
+                (byte) ((data >> 8) & 0xff),
+                (byte) ((data) & 0xff),
+        };
+    }
+
     public static String longToDateStr(long l) {
         return longToDateStr(l, DEFAULT_DATETIME_FORMAT);
     }
@@ -1133,9 +1160,9 @@ public class Common {
     }
 
     private static class PathPattern {
-        private Pattern pattern;
-        private String path;
-        private String originalPath;
+        private final Pattern pattern;
+        private final String path;
+        private final String originalPath;
 
         public PathPattern(String path) {
             this.originalPath = path;
@@ -1165,5 +1192,6 @@ public class Common {
             return originalPath.hashCode();
         }
     }
+
 
 }

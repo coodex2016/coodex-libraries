@@ -26,7 +26,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-@SuppressWarnings("unused")
+import static org.coodex.util.Common.cast;
+
 public class Tracer {
     private final static Logger log = LoggerFactory.getLogger(Tracer.class);
     private static final StackClosureContext<Map<String, Object>> tracer_context = new StackClosureContext<>();
@@ -53,8 +54,7 @@ public class Tracer {
     }
 
     private static Map<String, Long> getStartTimeMap() {
-        //noinspection unchecked
-        return (Map<String, Long>) tracer_context.get().get(START_TIME_KEY);
+        return cast(tracer_context.get().get(START_TIME_KEY));
     }
 
     public static void end(String label) {
@@ -102,7 +102,7 @@ public class Tracer {
 
     public void trace(final Runnable runnable) {
         if (isEnabled()) {
-            trace((Supplier<Object>) () -> {
+            trace(() -> {
                 runnable.run();
                 return null;
             });
@@ -118,7 +118,7 @@ public class Tracer {
             Map<String, Object> context = new LinkedHashMap<>();
             try {
                 context.put(START_TIME_KEY, new HashMap<String, Long>());
-                return Common.cast(tracer_context.call(context, supplier));
+                return cast(tracer_context.call(context, supplier));
             } catch (Throwable th) {
                 throwable = th;
             } finally {

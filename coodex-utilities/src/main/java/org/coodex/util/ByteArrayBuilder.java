@@ -72,7 +72,7 @@ public class ByteArrayBuilder {
     }
 
     public ByteArrayBuilder append(int i, Endianness endianness) {
-        return append(toBytes(i & 0xFFFFFFFFl, 4, endianness));
+        return append(toBytes(i & 0xFFFFFFFFL, 4, endianness));
     }
 
     public ByteArrayBuilder append(long l, Endianness endianness) {
