@@ -16,17 +16,21 @@
 
 package org.coodex.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Locale;
 
+@Slf4j
 public class I18N {
 
-    private static final Singleton<TranslateService> TRANSLATE_SERVICE_SINGLETON = Singleton.with(
-            () -> new ServiceLoaderImpl<TranslateService>(new ProfileBasedTranslateService()) {
-            }.get()
-    );
+
+    private static final ServiceLoader<TranslateService> TRANSLATE_SERVICE_SERVICE_LOADER
+            = new LazyServiceLoader<TranslateService>(new ProfileBasedTranslateService()) {
+    };
+
 
     public static TranslateService getTranslateService() {
-        return TRANSLATE_SERVICE_SINGLETON.get();
+        return TRANSLATE_SERVICE_SERVICE_LOADER.get();
     }
 
     public static String translate(String key) {
@@ -36,4 +40,29 @@ public class I18N {
     public static String translate(String key, Locale locale) {
         return getTranslateService().translate(key, locale);
     }
+
+    /**
+     * 使用 {@link Renderer#render(String, Object...)} 接口对翻译后的内容进行渲染
+     *
+     * @param key     i18n key
+     * @param objects 渲染参数
+     * @return 渲染后的字符串
+     */
+    public static String render(String key, Object... objects) {
+        return Renderer.render(translate(key), objects);
+    }
+
+    /**
+     * 使用 {@link Renderer#render(String, Object...)} 接口对翻译后的内容进行渲染
+     *
+     * @param key     i18n key
+     * @param locale  locale
+     * @param objects 渲染参数
+     * @return 渲染后的字符串
+     */
+    public static String render(String key, Locale locale, Object... objects) {
+        return Renderer.render(translate(key, locale), objects);
+    }
+
+
 }

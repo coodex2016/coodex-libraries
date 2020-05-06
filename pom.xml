@@ -60,6 +60,7 @@
         <log4j2.version>2.13.0</log4j2.version>
         <snakeyaml.version>1.26</snakeyaml.version>
         <cglib.version>3.2.12</cglib.version>
+        <freemarker.version>2.3.28</freemarker.version>
     </properties>
 
     <profiles>
@@ -241,6 +242,13 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- freemarker -->
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+
             <!-- jUnit -->
             <dependency>
                 <groupId>junit</groupId>
@@ -293,6 +301,7 @@
         <module>shared-cache-jedis</module>
         <module>shared-cache-memcached</module>
         <module>coodex-metadata</module>
+        <module>coodex-renderer-freemarker</module>
 
     </modules>
 
