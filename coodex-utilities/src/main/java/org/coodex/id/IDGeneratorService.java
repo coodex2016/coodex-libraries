@@ -20,5 +20,5 @@ public interface IDGeneratorService {
     /**
      * @return 生成一个id
      */
-    String generateId();
+    String newId();
 }

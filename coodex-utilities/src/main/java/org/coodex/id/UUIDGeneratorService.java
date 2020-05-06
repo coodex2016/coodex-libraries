@@ -20,7 +20,7 @@ import org.coodex.util.Common;
 
 public class UUIDGeneratorService implements IDGeneratorService {
     @Override
-    public String generateId() {
+    public String newId() {
         return Common.getUUIDStr();
     }
 }

@@ -25,7 +25,7 @@ public class IDGenerator {
             = new LazyServiceLoader<IDGeneratorService>(SnowflakeIdGeneratorService::new) {
     };
 
-    public static String genId() {
-        return ID_GENERATOR_SERVICE_SERVICE_LOADER.get().generateId();
+    public static String newId() {
+        return ID_GENERATOR_SERVICE_SERVICE_LOADER.get().newId();
     }
 }

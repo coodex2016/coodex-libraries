@@ -49,7 +49,7 @@ public class SnowflakeIdGeneratorService implements IDGeneratorService {
     }
 
     @Override
-    public String generateId() {
+    public String newId() {
         return Base58.encode(Common.long2Bytes(snowflakeIdWorkerSingleton.get().nextId()));
     }
 }
