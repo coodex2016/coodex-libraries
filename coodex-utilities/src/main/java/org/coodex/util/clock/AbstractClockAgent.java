@@ -16,19 +16,19 @@
 
 package org.coodex.util.clock;
 
+import lombok.extern.slf4j.Slf4j;
 import org.coodex.util.Common;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public abstract class AbstractClockAgent implements ClockAgent {
-    private final static Logger log = LoggerFactory.getLogger(AbstractClockAgent.class);
 
-    private Float magnification;
-    private long baseLine;
-    private long start;
+
+    private final Float magnification;
+    private final long baseLine;
+    private final long start;
 
     public AbstractClockAgent(Float magnification, long baseLine, long start) {
         this.magnification = magnification;
@@ -80,6 +80,7 @@ public abstract class AbstractClockAgent implements ClockAgent {
     @Override
     public void objWait(Object obj, long millis) throws InterruptedException {
         if (millis <= 0) return;
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (obj) {
             obj.wait((long) Math.max(millis / magnification, 1));
         }

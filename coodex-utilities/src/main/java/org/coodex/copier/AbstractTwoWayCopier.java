@@ -28,6 +28,80 @@ public abstract class AbstractTwoWayCopier<A, B>
         extends AbstractCopierCommon
         implements TwoWayCopier<A, B> {
 
+    private final Copier<A, B> a2bCopier = new Copier<A, B>() {
+        @Override
+        public B newTargetObject() {
+            return newB();
+        }
+
+        @Override
+        public B initTargetObject(B b) {
+            return initB(b);
+        }
+
+        @Override
+        public B initTargetObject() {
+            return initB();
+        }
+
+        @Override
+        public B copy(A a, B b) {
+            return copyA2B(a, b);
+        }
+
+        @Override
+        public B copy(A a) {
+            return copyA2B(a);
+        }
+
+        @Override
+        public <T extends Collection<B>> T copy(Collection<A> as, Class<T> clazz) {
+            return copyA2B(as, clazz);
+        }
+
+        @Override
+        public Collection<B> copy(Collection<A> as) {
+            return copyA2B(as);
+        }
+    };
+
+    private final Copier<B, A> b2aCopier = new Copier<B, A>() {
+        @Override
+        public A newTargetObject() {
+            return newA();
+        }
+
+        @Override
+        public A initTargetObject(A a) {
+            return initA(a);
+        }
+
+        @Override
+        public A initTargetObject() {
+            return initA();
+        }
+
+        @Override
+        public A copy(B b, A a) {
+            return copyB2A(b, a);
+        }
+
+        @Override
+        public A copy(B b) {
+            return copyB2A(b);
+        }
+
+        @Override
+        public <T extends Collection<A>> T copy(Collection<B> bs, Class<T> clazz) {
+            return copyB2A(bs, clazz);
+        }
+
+        @Override
+        public Collection<A> copy(Collection<B> bs) {
+            return copyB2A(bs);
+        }
+    };
+
     @Override
     protected Object copy(Object o, Index srcIndex) {
         if (Index.A.getIndex() == srcIndex.getIndex()) {
@@ -37,8 +111,6 @@ public abstract class AbstractTwoWayCopier<A, B>
             B b = Common.cast(o);
             return copyB2A(b);
         }
-//        return Index.A.getIndex() == srcIndex.getIndex() ?
-//                copyA2B((A) o) : copyB2A((B) o);
     }
 
     @Override
@@ -61,10 +133,6 @@ public abstract class AbstractTwoWayCopier<A, B>
         return copyB2A(b, initA());
     }
 
-//    @Override
-//    public A copyB2A(B b, A a) {
-//        return null;
-//    }
 
     @Override
     public <T extends Collection<A>> T copyB2A(Collection<B> srcCollection) {
@@ -96,11 +164,6 @@ public abstract class AbstractTwoWayCopier<A, B>
         return copyA2B(a, initB());
     }
 
-//    @Override
-//    public B copyA2B(A a, B b) {
-//        return null;
-//    }
-
     @Override
     public <T extends Collection<B>> T copyA2B(Collection<A> srcCollection) {
         return copy(srcCollection, Index.A);
@@ -113,81 +176,11 @@ public abstract class AbstractTwoWayCopier<A, B>
 
     @Override
     public Copier<A, B> a2bCopier() {
-        return new Copier<A, B>() {
-            @Override
-            public B newTargetObject() {
-                return newB();
-            }
-
-            @Override
-            public B initTargetObject(B b) {
-                return initB(b);
-            }
-
-            @Override
-            public B initTargetObject() {
-                return initB();
-            }
-
-            @Override
-            public B copy(A a, B b) {
-                return copyA2B(a, b);
-            }
-
-            @Override
-            public B copy(A a) {
-                return copyA2B(a);
-            }
-
-            @Override
-            public <T extends Collection<B>> T copy(Collection<A> as, Class<T> clazz) {
-                return copyA2B(as, clazz);
-            }
-
-            @Override
-            public Collection<B> copy(Collection<A> as) {
-                return copyA2B(as);
-            }
-        };
+        return a2bCopier;
     }
 
     @Override
     public Copier<B, A> b2aCopier() {
-        return new Copier<B, A>() {
-            @Override
-            public A newTargetObject() {
-                return newA();
-            }
-
-            @Override
-            public A initTargetObject(A a) {
-                return initA(a);
-            }
-
-            @Override
-            public A initTargetObject() {
-                return initA();
-            }
-
-            @Override
-            public A copy(B b, A a) {
-                return copyB2A(b, a);
-            }
-
-            @Override
-            public A copy(B b) {
-                return copyB2A(b);
-            }
-
-            @Override
-            public <T extends Collection<A>> T copy(Collection<B> bs, Class<T> clazz) {
-                return copyB2A(bs, clazz);
-            }
-
-            @Override
-            public Collection<A> copy(Collection<B> bs) {
-                return copyB2A(bs);
-            }
-        };
+        return b2aCopier;
     }
 }

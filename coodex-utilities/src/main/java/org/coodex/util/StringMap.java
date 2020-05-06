@@ -19,6 +19,7 @@ package org.coodex.util;
 /**
  * Created by davidoff shen on 2017-05-11.
  */
+@Deprecated
 public interface StringMap {
 
     String getString(String key);

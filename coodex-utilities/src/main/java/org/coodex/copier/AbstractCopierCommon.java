@@ -32,7 +32,7 @@ import static org.coodex.util.GenericTypeHelper.typeToClass;
 
 public abstract class AbstractCopierCommon {
 
-    private Class<?>[] classes = new Class<?>[2];
+    private final Class<?>[] classes = new Class<?>[2];
 
     protected Class<?> getClass(Index index) {
         synchronized (this) {

@@ -17,7 +17,6 @@
 package org.coodex.util;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -28,7 +27,7 @@ import java.util.List;
  */
 public class Section<T extends Comparable<T>> {
 
-    private T start;
+    private final T start;
     private T end;
 
     @SuppressWarnings("WeakerAccess")
@@ -54,15 +53,10 @@ public class Section<T extends Comparable<T>> {
      */
     public static <T extends Comparable<T>, S extends Section<T>>
     List<S> merge(List<S> sections, Builder<T, S> builder) {
-        if (sections == null || sections.size() == 0) return new ArrayList<S>();
-        List<S> periodList = new ArrayList<S>(sections);
-        Collections.sort(periodList, new Comparator<S>() {
-            @Override
-            public int compare(S o1, S o2) {
-                return o1.getStart().compareTo(o2.getStart());
-            }
-        });
-        List<S> resultList = new ArrayList<S>();
+        if (sections == null || sections.size() == 0) return new ArrayList<>();
+        List<S> periodList = new ArrayList<>(sections);
+        periodList.sort(Comparator.comparing(Section<T>::getStart));
+        List<S> resultList = new ArrayList<>();
         int index = 0;
         S section;
         do {
@@ -70,7 +64,7 @@ public class Section<T extends Comparable<T>> {
             index++;
         } while (section.getStart().equals(section.getEnd()) && index < periodList.size());
 
-        if (section.getStart().equals(section.getEnd())) return new ArrayList<S>();
+        if (section.getStart().equals(section.getEnd())) return new ArrayList<>();
 
         resultList.add(section);
         for (int i = index; i < periodList.size(); i++) {
@@ -107,7 +101,7 @@ public class Section<T extends Comparable<T>> {
      */
     public static <T extends Comparable<T>, S extends Section<T>>
     List<S> intersect(List<S> s1, List<S> s2, Builder<T, S> builder) {
-        if (s1 == null || s1.size() == 0 || s2 == null || s2.size() == 0) return new ArrayList<S>();
+        if (s1 == null || s1.size() == 0 || s2 == null || s2.size() == 0) return new ArrayList<>();
         List<S> union = merge(s1, builder);
         union.addAll(merge(s2, builder));
         return sub(
@@ -147,7 +141,7 @@ public class Section<T extends Comparable<T>> {
             return subtracted;
         List<S> subtraction = merge(subtractionList, builder);
 
-        List<S> sections = new ArrayList<S>();
+        List<S> sections = new ArrayList<>();
         for (S subtractedSection : subtracted) {
             sections.addAll(sub(subtractedSection, subtraction, builder));
         }
@@ -156,7 +150,7 @@ public class Section<T extends Comparable<T>> {
 
     private static <T extends Comparable<T>, S extends Section<T>>
     List<S> sub(S subtractedSection, List<S> subtraction, Builder<T, S> builder) {
-        List<S> result = new ArrayList<S>();
+        List<S> result = new ArrayList<>();
         boolean crossed = false;
         for (S subtractionSection : subtraction) {
             // 减数线段的开始点 >= 被减数线段结束点时，后面不用继续了

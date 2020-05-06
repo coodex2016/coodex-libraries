@@ -25,12 +25,11 @@ import java.util.concurrent.*;
 
 class ExecutorServiceImpl implements ExecutorService {
 
-    private static LazyServiceLoader<ExecutableWrapper> executableWrapperLoader =
+    private static final LazyServiceLoader<ExecutableWrapper> executableWrapperLoader =
             new LazyServiceLoader<ExecutableWrapper>(new ExecutableWrapperImpl()) {
             };
-
-    private final ExecutorService executorService;
     protected final ExecutableWrapper wrapper;
+    private final ExecutorService executorService;
 
     ExecutorServiceImpl(ExecutorService executorService) {
         this.executorService = executorService;
@@ -38,7 +37,7 @@ class ExecutorServiceImpl implements ExecutorService {
     }
 
     <V> Collection<? extends Callable<V>> wrap(Collection<? extends Callable<V>> coll) {
-        List<Callable<V>> list = new ArrayList<Callable<V>>();
+        List<Callable<V>> list = new ArrayList<>();
         for (Callable<V> c : coll) {
             list.add(wrapper.wrap(c));
         }
@@ -68,7 +67,7 @@ class ExecutorServiceImpl implements ExecutorService {
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return awaitTermination(timeout, unit);
+        return executorService.awaitTermination(timeout, unit);
     }
 
     @Override
@@ -88,22 +87,22 @@ class ExecutorServiceImpl implements ExecutorService {
 
     @Override
     public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
-        return invokeAll(wrap(tasks));
+        return executorService.invokeAll(wrap(tasks));
     }
 
     @Override
     public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
-        return invokeAll(wrap(tasks), timeout, unit);
+        return executorService.invokeAll(wrap(tasks), timeout, unit);
     }
 
     @Override
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
-        return invokeAny(wrap(tasks));
+        return executorService.invokeAny(wrap(tasks));
     }
 
     @Override
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return invokeAny(wrap(tasks), timeout, unit);
+        return executorService.invokeAny(wrap(tasks), timeout, unit);
     }
 
     @Override

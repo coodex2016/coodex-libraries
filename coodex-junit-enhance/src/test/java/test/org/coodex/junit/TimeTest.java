@@ -22,6 +22,7 @@ import org.coodex.junit.enhance.CoodexEnhanceTestRule;
 import org.coodex.junit.enhance.Entry;
 import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -34,9 +35,9 @@ import static org.coodex.util.Common.now;
 
 public class TimeTest {
 
-    private static ScheduledExecutorService scheduledExecutorService = ExecutorsHelper.newScheduledThreadPool(3, "scheduledExecutorService");
+    private static final ScheduledExecutorService scheduledExecutorService = ExecutorsHelper.newScheduledThreadPool(3, "scheduledExecutorService");
 
-    private static ExecutorService executorService = ExecutorsHelper.newFixedThreadPool(3, "executorService");
+    private static final ExecutorService executorService = ExecutorsHelper.newFixedThreadPool(3, "executorService");
 
     @Rule
     public CoodexEnhanceTestRule rule = new CoodexEnhanceTestRule();
@@ -100,4 +101,8 @@ public class TimeTest {
         System.out.println(TIME.nextHours(2));
     }
 
+
+    public static void main(String[] args) {
+        System.out.println(LoggerFactory.getILoggerFactory());
+    }
 }

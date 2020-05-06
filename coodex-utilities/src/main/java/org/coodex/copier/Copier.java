@@ -48,8 +48,8 @@ public interface Copier<SRC, TARGET> {
     TARGET initTargetObject();
 
     /**
-     * @param src
-     * @param target
+     * @param src    src
+     * @param target target
      * @return 属性复制
      */
     TARGET copy(SRC src, TARGET target);
@@ -64,17 +64,17 @@ public interface Copier<SRC, TARGET> {
     /**
      * 复制集合
      *
-     * @param srcCollection
-     * @param clazz
-     * @param <T>
-     * @return
+     * @param srcCollection srcCollection
+     * @param clazz         clazz
+     * @param <T>           <T>
+     * @return 集合复制
      */
     <T extends Collection<TARGET>> T copy(Collection<SRC> srcCollection, Class<T> clazz);
 
 
     /**
-     * @param srcCollection
-     * @return
+     * @param srcCollection srcCollection
+     * @return 集合复制
      */
     Collection<TARGET> copy(Collection<SRC> srcCollection);
 

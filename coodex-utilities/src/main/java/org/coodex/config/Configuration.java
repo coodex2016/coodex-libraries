@@ -32,8 +32,8 @@ public interface Configuration {
      * key
      * </pre>
      *
-     * @param key
-     * @return
+     * @param key key
+     * @return value
      */
     String get(String key, String... namespaces);
 

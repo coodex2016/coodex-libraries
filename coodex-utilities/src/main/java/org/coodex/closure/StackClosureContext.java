@@ -16,8 +16,6 @@
 
 package org.coodex.closure;
 
-import org.coodex.util.Common;
-
 import java.util.Stack;
 import java.util.function.Supplier;
 
@@ -54,20 +52,4 @@ public class StackClosureContext<T> extends AbstractClosureContext<Stack<T>> imp
             }
         }
     }
-
-//    @Override
-//    @Deprecated
-//    public Object call(T var, CallableClosure callable) throws Throwable {
-//        return call(var, callable == null ? null : callable.toSupplier());
-//    }
-//
-//    @Override
-//    @Deprecated
-//    public Object useRTE(T var, CallableClosure callableClosure) {
-//        try {
-//            return call(var, callableClosure);
-//        } catch (Throwable throwable) {
-//            throw Common.runtimeException(throwable);
-//        }
-//    }
 }

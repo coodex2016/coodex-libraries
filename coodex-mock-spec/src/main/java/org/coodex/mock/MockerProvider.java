@@ -19,7 +19,6 @@ package org.coodex.mock;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import static com.sun.jmx.mbeanserver.Util.cast;
 
 public interface MockerProvider {
 
@@ -32,10 +31,11 @@ public interface MockerProvider {
      * @param <T>         类型泛型
      * @return 模拟值
      */
+    @SuppressWarnings("unchecked")
     default <T> T mock(Class<T> type, Annotation... annotations) {
         Object o = mock(type, type, annotations);
         if (o == null || type.isAssignableFrom(o.getClass())) {
-            return cast(o);
+            return (T) o;
         } else {
             throw new ClassCastException();
         }

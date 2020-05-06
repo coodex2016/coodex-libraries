@@ -30,7 +30,7 @@ import java.util.Map;
 public class ProfileBaseYaml extends Profile {
 
     private final static Logger log = LoggerFactory.getLogger(ProfileBaseYaml.class);
-    private Map<String, Object> valuesMap = new HashMap<>();
+    private final Map<String, Object> valuesMap = new HashMap<>();
 
 //    @Deprecated
 //    ProfileBaseYaml(String path) {

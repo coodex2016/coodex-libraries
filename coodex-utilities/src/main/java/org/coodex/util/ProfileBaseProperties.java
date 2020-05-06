@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -111,7 +110,6 @@ public class ProfileBaseProperties extends Profile {
     }
 
 
-
     private void load() {
         try {
             p.clear();
@@ -119,8 +117,6 @@ public class ProfileBaseProperties extends Profile {
                 p.load(is);
                 is.close();
             }
-        } catch (FileNotFoundException e) {
-            log.warn(e.getLocalizedMessage(), e);
         } catch (IOException e) {
             log.warn(e.getLocalizedMessage(), e);
         }

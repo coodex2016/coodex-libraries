@@ -16,8 +16,6 @@
 
 package org.coodex.util;
 
-import java.net.URL;
-
 public abstract class AbstractProfileProvider implements ProfileProvider {
 
     @Override

@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
@@ -52,7 +51,7 @@ public class X509CertsSSLContextFactory implements SSLContextFactory {
         String certPath = Common.trim(param.substring(CERT_PATH.length()), ',', ' ', ':', ';');
         Set<String> allPath = Common.arrayToSet(Common.toArray(certPath, ";", new String[0]));
         SSLContext sslContext = SSLContext.getInstance("TLSV1.2");
-        List<X509TrustManager> trustManagers = new ArrayList<X509TrustManager>();
+        List<X509TrustManager> trustManagers = new ArrayList<>();
 
 //        KeyStore trusted = KeyStore.getInstance(KeyStore.getDefaultType());
 //        trusted.load(null); // 初始化一个空库
@@ -64,11 +63,8 @@ public class X509CertsSSLContextFactory implements SSLContextFactory {
             if (path.toLowerCase().startsWith(CLASS_PATH)) {
                 String[] certs = Common.toArray(path.substring(CLASS_PATH.length()), ",", new String[0]);
                 for (String cert : certs) {
-                    InputStream inputStream = Common.getResource(cert).openStream();
-                    try {
+                    try (InputStream inputStream = Common.getResource(cert).openStream()) {
                         trustManagers.add(new X509TrustManagerImpl(inputStream));
-                    } finally {
-                        inputStream.close();
                     }
 //                    loadCertFromInputStream(trusted, getCertFromResource(cert), ALIAS + index++);
                 }
@@ -88,7 +84,7 @@ public class X509CertsSSLContextFactory implements SSLContextFactory {
 //        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
 //        trustManagerFactory.init(trusted);
 
-        sslContext.init(null, trustManagers.toArray(new X509TrustManager[0]),null);
+        sslContext.init(null, trustManagers.toArray(new X509TrustManager[0]), null);
 
         return sslContext;
     }

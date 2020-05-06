@@ -24,7 +24,7 @@ import static org.coodex.util.Common.cast;
 
 public class GenericTypeHelper {
 
-    private static SingletonMap<Type, GenericTypeInfo> typeInfos = SingletonMap.<Type, GenericTypeInfo>builder()
+    private static final SingletonMap<Type, GenericTypeInfo> typeInfos = SingletonMap.<Type, GenericTypeInfo>builder()
             .function(GenericTypeInfo::new).build();
 
     public static Type solveFromInstance(TypeVariable<?> t, Object instance) {
@@ -269,8 +269,8 @@ public class GenericTypeHelper {
 
     private static class GenericTypeInfo {
 
-        private Map<TypeVariable<? extends Class<?>>, Type> map = new ConcurrentHashMap<>();
-        private Set<Type> processed = new HashSet<>();
+        private final Map<TypeVariable<? extends Class<?>>, Type> map = new ConcurrentHashMap<>();
+        private final Set<Type> processed = new HashSet<>();
 
         GenericTypeInfo(Type x) {
             process(x);

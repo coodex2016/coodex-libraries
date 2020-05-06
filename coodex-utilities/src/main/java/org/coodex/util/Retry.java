@@ -54,7 +54,7 @@ public class Retry {
     private Integer maxTimes;
     private long initDelay = 0L;
     private NextDelay nextDelay;
-    private NameSupplier taskNameSupplier = null;
+    private Supplier<String> taskNameSupplier = null;
     private OnFailed onFailed = null;
     private AllFailedHandle allFailedHandle = null;
 
@@ -97,7 +97,7 @@ public class Retry {
     }
 
     private String getTaskName() {
-        return taskNameSupplier == null ? task.toString() : taskNameSupplier.getName();
+        return taskNameSupplier == null ? task.toString() : taskNameSupplier.get();
     }
 
     private void postTask() {
@@ -202,7 +202,7 @@ public class Retry {
         RUNNING(2), // --> WAITING/ FINISHED
         FINISHED(3);
 
-        private int status;
+        private final int status;
 
         Status(int status) {
             this.status = status;
@@ -211,16 +211,13 @@ public class Retry {
         public int getStatus() {
             return status;
         }
+
     }
 
     public interface AllFailedHandle {
         void allFailed(Calendar start, int times);
     }
 
-    @Deprecated
-    public interface TaskNameSupplier extends NameSupplier {
-
-    }
 
     public interface OnFailed {
         /**
@@ -275,7 +272,7 @@ public class Retry {
         private Integer maxTimes;
         private long initDelay = 0L;
         private NextDelay nextDelay;
-        private NameSupplier taskNameSupplier = null;
+        private Supplier<String> taskNameSupplier = null;
         private OnFailed onFailed = null;
         private AllFailedHandle allFailedHandle = null;
 
@@ -349,7 +346,7 @@ public class Retry {
          * @param taskNameSupplier 任务名Supplier
          * @return Builder
          */
-        public Builder named(NameSupplier taskNameSupplier) {
+        public Builder named(Supplier<String> taskNameSupplier) {
             this.taskNameSupplier = taskNameSupplier;
             return this;
         }

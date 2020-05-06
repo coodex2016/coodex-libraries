@@ -49,7 +49,7 @@ public class SpeedLimitedOutputStream extends OutputStream {
         wroteBytesFromLastCountTime += size;
 
         if (wroteBytesFromLastCountTime >= speedLimit) {
-            long toSleep = 1000l - (Clock.currentTimeMillis() - lastCountTime);
+            long toSleep = 1000L - (Clock.currentTimeMillis() - lastCountTime);
             if (toSleep > 0) {
                 try {
                     Clock.sleep(toSleep);

@@ -32,10 +32,10 @@ public interface ResourceLock {
     boolean tryLock();
 
     /**
-     * @param time
-     * @param unit
-     * @return
-     * @throws InterruptedException
+     * @param time time
+     * @param unit unit
+     * @return 是否获取到锁
+     * @throws InterruptedException interrupted
      * @see Lock#tryLock(long, TimeUnit)
      */
     boolean tryLock(long time, TimeUnit unit) throws InterruptedException;

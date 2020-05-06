@@ -16,8 +16,6 @@
 
 package org.coodex.closure;
 
-import org.coodex.util.Common;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -26,7 +24,6 @@ import java.util.function.Supplier;
  * Created by davidoff shen on 2016-09-04.
  */
 public class MapClosureContext<K, V> extends StackClosureContext<Map<K, V>> {
-
 
     /**
      * @param key key
@@ -51,31 +48,6 @@ public class MapClosureContext<K, V> extends StackClosureContext<Map<K, V>> {
 
     }
 
-    @Deprecated
-    public Object call(K key, V v, CallableClosure callableClosure) throws Throwable {
-        return call(key, v, callableClosure == null ? null : callableClosure.toSupplier());
-//        if (key == null)
-//            throw new RuntimeException("key MUST NOT null." + (v == null ? "" : v.toString()));
-//
-//        Map<K, V> map = new HashMap<K, V>();
-//        Map<K, V> current = get();
-//        if (current != null) {
-//            map.putAll(current);
-//        }
-//        map.put(key, v);
-//        return super.call(map, callableClosure);
-    }
-
-
-//    @Deprecated
-//    public Object useRTE(K key, V v, CallableClosure callableClosure) {
-//        try {
-//            return call(key, v, callableClosure);
-//        } catch (Throwable th) {
-//            throw Common.runtimeException(th);
-//        }
-//    }
-
     @Override
     public Object call(Map<K, V> map, Supplier<?> supplier) {
         Map<K, V> current = get();
@@ -88,11 +60,5 @@ public class MapClosureContext<K, V> extends StackClosureContext<Map<K, V>> {
         }
         return super.call(context, supplier);
     }
-
-//    @Override
-//    @Deprecated
-//    public Object call(Map<K, V> map, CallableClosure callableClosure) throws Throwable {
-//        return call(map, callableClosure == null ? null : callableClosure.toSupplier());
-//    }
 
 }

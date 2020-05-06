@@ -35,7 +35,7 @@ public class JavaUtilServiceLoaderProvider extends AbstractServiceLoaderProvider
 //    private static final Singleton<Boolean> CACHE_ENABLED = new Singleton<>(() ->
 //            Config.getValue(ServiceLoader.class.getName() + ".cache.enable", true)
 //    );
-    private static SingletonMap<Class<?>, Map<String, Object>> cache = SingletonMap.<Class<?>, Map<String, Object>>builder().build();
+    private static final SingletonMap<Class<?>, Map<String, Object>> cache = SingletonMap.<Class<?>, Map<String, Object>>builder().build();
 
     @Override
     protected Map<String, Object> loadByRowType(Class<?> rowType) {

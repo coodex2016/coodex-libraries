@@ -32,8 +32,8 @@ public class CounterFacade {
     /**
      * 扔一个数进去统计
      *
-     * @param value
-     * @param <T>
+     * @param value value
+     * @param <T>   <T>
      */
     public static <T extends Countable> void count(T value) {
         COUNTER_FACTORY.get().count(value);
@@ -42,8 +42,8 @@ public class CounterFacade {
     /**
      * 扔一堆数进去计算
      *
-     * @param value
-     * @param <T>
+     * @param value value
+     * @param <T>   <T>
      */
     @SafeVarargs
     public static <T extends Countable> void count(T... value) {
@@ -54,11 +54,10 @@ public class CounterFacade {
     /**
      * 扔一堆数进去计算
      *
-     * @param value
-     * @param <T>
+     * @param value value
+     * @param <T>   <T>
      */
     public static <T extends Countable> void count(Collection<T> value) {
-//        COUNTER_FACTORY.get().count(value);
         for (T t : value) {
             COUNTER_FACTORY.get().count(t);
         }

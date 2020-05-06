@@ -22,9 +22,7 @@ package org.coodex.count;
 public interface Segmentation {
 
     /**
-     * 下一个分段的开始时间
-     *
-     * @return
+     * @return 下一个分段的开始时间
      */
     long next();
 }

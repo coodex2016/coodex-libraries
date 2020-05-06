@@ -73,11 +73,11 @@ package org.coodex.util;
  * </pre>
  */
 public class CRC {
-    private Parameters crcParams;
-    private long initValue;
+    private final Parameters crcParams;
+    private final long initValue;
+    private final long[] crcTable;
+    private final long mask;
     private long curValue;
-    private long[] crctable;
-    private long mask;
 
     /**
      * Constructs a new CRC processor for table based CRC calculations.
@@ -95,7 +95,7 @@ public class CRC {
 
         initValue = (crcParams.reflectIn) ? reflect(crcParams.init, crcParams.width) : crcParams.init;
         this.mask = ((crcParams.width >= 64) ? 0 : (1L << crcParams.width)) - 1;
-        this.crctable = new long[256];
+        this.crcTable = new long[256];
 
         byte[] tmp = new byte[1];
 
@@ -106,7 +106,7 @@ public class CRC {
         tableParams.finalXor = 0;
         for (int i = 0; i < 256; i++) {
             tmp[0] = (byte) i;
-            crctable[i] = CRC.calculateCRC(crcParams, tmp);
+            crcTable[i] = CRC.calculateCRC(crcParams, tmp);
         }
         curValue = initValue;
     }
@@ -211,9 +211,9 @@ public class CRC {
      * and finalCRC methods, possibly supplying data in chunks). It can be called multiple times per
      * CRC calculation to feed data to be processed in chunks.
      *
-     * @param chunk    data chunk to b processed by this call
-     * @param offset   is 0-based offset of the data to be processed in the array supplied
-     * @param length   indicates number of bytes to be processed.
+     * @param chunk  data chunk to b processed by this call
+     * @param offset is 0-based offset of the data to be processed in the array supplied
+     * @param length indicates number of bytes to be processed.
      * @return updated intermediate value for this CRC
      */
     public long update(/*long curValue,*/ byte[] chunk, int offset, int length) {
@@ -221,17 +221,17 @@ public class CRC {
         if (crcParams.reflectIn) {
             for (int i = 0; i < length; i++) {
                 byte v = chunk[offset + i];
-                curValue = crctable[(((byte) curValue) ^ v) & 0x00FF] ^ (curValue >>> 8);
+                curValue = crcTable[(((byte) curValue) ^ v) & 0x00FF] ^ (curValue >>> 8);
             }
         } else if (crcParams.width < 8) {
             for (int i = 0; i < length; i++) {
                 byte v = chunk[offset + i];
-                curValue = crctable[((((byte) (curValue << (8 - crcParams.width))) ^ v) & 0xFF)] ^ (curValue << 8);
+                curValue = crcTable[((((byte) (curValue << (8 - crcParams.width))) ^ v) & 0xFF)] ^ (curValue << 8);
             }
         } else {
             for (int i = 0; i < length; i++) {
                 byte v = chunk[offset + i];
-                curValue = crctable[((((byte) (curValue >>> (crcParams.width - 8))) ^ v) & 0xFF)] ^ (curValue << 8);
+                curValue = crcTable[((((byte) (curValue >>> (crcParams.width - 8))) ^ v) & 0xFF)] ^ (curValue << 8);
             }
         }
 
@@ -241,9 +241,10 @@ public class CRC {
     /**
      * A convenience method for feeding a complete byte array of data.
      *
-     * @param chunk    data chunk to b processed by this call
+     * @param chunk data chunk to b processed by this call
      * @return updated intermediate value for this CRC
      */
+    @SuppressWarnings("UnusedReturnValue")
     public long update(/*long curValue,*/ byte[] chunk) {
         return update(/*curValue,*/ chunk, 0, chunk.length);
     }
@@ -258,7 +259,7 @@ public class CRC {
         if (crcParams.reflectOut != crcParams.reflectIn) {
             curValue = reflect(curValue, crcParams.width);
         }
-        curValue =  (curValue ^ crcParams.finalXor) & mask;
+        curValue = (curValue ^ crcParams.finalXor) & mask;
         return curValue;
     }
 
@@ -366,7 +367,7 @@ public class CRC {
         CRC32_XFER(new Parameters(32, 0x000000AF, 0x00000000, false, false, 0x00000000));
 
 
-        private Parameters parameters;
+        private final Parameters parameters;
 
         Algorithm(Parameters parameters) {
             this.parameters = parameters;
@@ -378,9 +379,9 @@ public class CRC {
     }
 
     public static class Parameters {
-        private int width;   // Width of the CRC expressed in bits
-        private long polynomial; // Polynomial used in this CRC calculation
-        private boolean reflectIn;   // Refin indicates whether input bytes should be reflected
+        private final int width;   // Width of the CRC expressed in bits
+        private final long polynomial; // Polynomial used in this CRC calculation
+        private final boolean reflectIn;   // Refin indicates whether input bytes should be reflected
         private boolean reflectOut;   // Refout indicates whether input bytes should be reflected
         private long init; // Init is initial value for CRC calculation
         private long finalXor; // Xor is a value for final xor to be applied before returning result

@@ -20,7 +20,7 @@ import java.util.Locale;
 
 public class I18N {
 
-    private static Singleton<TranslateService> TRANSLATE_SERVICE_SINGLETON = Singleton.with(
+    private static final Singleton<TranslateService> TRANSLATE_SERVICE_SINGLETON = Singleton.with(
             () -> new ServiceLoaderImpl<TranslateService>(new ProfileBasedTranslateService()) {
             }.get()
     );

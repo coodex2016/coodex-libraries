@@ -21,37 +21,42 @@ import java.util.concurrent.TimeUnit;
 
 public interface ClockAgent {
     /**
-     * 替代 {@link System#currentTimeMillis()} 接口
-     * @return
+     * @return 替代 {@link System#currentTimeMillis()} 接口
      */
     long currentTimeMillis();
 
     /**
-     * 替代 {@link Calendar#getInstance()} 接口
-     * @return
+     * @return 替代  {@link Calendar#getInstance()} 接口
      */
     Calendar getCalendar();
 
     /**
      * 替代 {@link Thread#sleep(long)}  接口
-     * @param millis
+     *
+     * @param millis millis
      */
     void sleep(long millis) throws InterruptedException;
 
     /**
      * 替代 {@link Object#wait(long)} 接口
-     * @param obj
-     * @param millis
+     *
+     * @param obj    obj
+     * @param millis millis
      */
     void objWait(Object obj, long millis) throws InterruptedException;
 
     /**
      * 替代 {@link TimeUnit#sleep(long)} 接口
-     * @param unit
-     * @param timeout
-     * @throws InterruptedException
+     *
+     * @param unit    unit
+     * @param timeout timeout
      */
     void sleep(TimeUnit unit, long timeout) throws InterruptedException;
 
+    /**
+     * @param duration duration
+     * @param timeUnit timeUnit
+     * @return 替代 {@link TimeUnit#toMillis(long)} 接口
+     */
     long toMillis(long duration, TimeUnit timeUnit);
 }

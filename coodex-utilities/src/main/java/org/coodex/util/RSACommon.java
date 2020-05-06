@@ -35,17 +35,15 @@ import java.security.spec.X509EncodedKeySpec;
  */
 public class RSACommon {
     /**
-     * 公私钥对是否匹配
-     *
-     * @param publicKey
-     * @param privateKey
-     * @return
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
-     * @throws SignatureException
-     * @throws InvalidKeyException
+     * @param publicKey  publicKey
+     * @param privateKey privateKey
+     * @return 公私钥对是否匹配
+     * @throws InvalidKeySpecException  InvalidKeySpecException
+     * @throws NoSuchAlgorithmException NoSuchAlgorithmException
+     * @throws SignatureException       SignatureException
+     * @throws InvalidKeyException      InvalidKeyException
      */
-    public static final boolean isKeyPair(byte[] publicKey, byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+    public static boolean isKeyPair(byte[] publicKey, byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         SecureRandom random = new SecureRandom();
         byte[] testCase = random.generateSeed(32);
 
@@ -54,31 +52,27 @@ public class RSACommon {
     }
 
     /**
-     * 私钥签名
-     *
-     * @param privateKey
-     * @param content
-     * @return
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws SignatureException
+     * @param privateKey privateKey
+     * @param content    content
+     * @return 私钥签名
+     * @throws InvalidKeySpecException  InvalidKeySpecException
+     * @throws NoSuchAlgorithmException NoSuchAlgorithmException
+     * @throws InvalidKeyException      InvalidKeyException
+     * @throws SignatureException       SignatureException
      */
     public static byte[] sign(byte[] privateKey, byte[] content) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         return sign(privateKey, content, "SHA256withRSA");
     }
 
     /**
-     * 使用指定算法签名，默认SHA256withRSA
-     *
-     * @param privateKey
-     * @param content
-     * @param algorithm
-     * @return
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws SignatureException
+     * @param privateKey privateKey
+     * @param content    content
+     * @param algorithm  algorithm
+     * @return 使用指定算法签名，默认SHA256withRSA
+     * @throws InvalidKeySpecException  InvalidKeySpecException
+     * @throws NoSuchAlgorithmException NoSuchAlgorithmException
+     * @throws InvalidKeyException      InvalidKeyException
+     * @throws SignatureException       SignatureException
      */
     public static byte[] sign(byte[] privateKey, byte[] content, String algorithm) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         if (privateKey == null) throw new InvalidKeyException("no privateKey.");
@@ -95,16 +89,14 @@ public class RSACommon {
     }
 
     /**
-     * 公钥验签
-     *
-     * @param publicKey
-     * @param content
-     * @param signature
-     * @return
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws SignatureException
+     * @param publicKey publicKey
+     * @param content   content
+     * @param signature signature
+     * @return 公钥验签
+     * @throws InvalidKeySpecException  InvalidKeySpecException
+     * @throws NoSuchAlgorithmException NoSuchAlgorithmException
+     * @throws InvalidKeyException      InvalidKeyException
+     * @throws SignatureException       SignatureException
      */
     public static boolean verify(byte[] publicKey, byte[] content, byte[] signature, String algorithm) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         if (publicKey == null) throw new InvalidKeyException("no publicKey.");
@@ -117,20 +109,18 @@ public class RSACommon {
 
 
     /**
-     * 使用RSA公钥加密
-     *
-     * @param publicKey
-     * @param content
-     * @return
-     * @throws NoSuchPaddingException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
-     * @throws InvalidKeyException
-     * @throws BadPaddingException
-     * @throws IllegalBlockSizeException
-     * @throws IOException
+     * @param publicKey publicKey
+     * @param content   content
+     * @return 使用RSA公钥加密
+     * @throws NoSuchPaddingException    NoSuchPaddingException
+     * @throws NoSuchAlgorithmException  NoSuchAlgorithmException
+     * @throws InvalidKeySpecException   InvalidKeySpecException
+     * @throws InvalidKeyException       InvalidKeyException
+     * @throws BadPaddingException       BadPaddingException
+     * @throws IllegalBlockSizeException IllegalBlockSizeException
+     * @throws IOException               IOException
      */
-    public final static byte[] encrypt(byte[] publicKey, byte[] content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
+    public static byte[] encrypt(byte[] publicKey, byte[] content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
         RSAPublicKey rsaKey = getRSAPublicKey(publicKey);
 
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
@@ -146,20 +136,18 @@ public class RSACommon {
     }
 
     /**
-     * 使用RSA私钥解密
-     *
-     * @param privateKey
-     * @param content
-     * @return
-     * @throws NoSuchPaddingException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
-     * @throws InvalidKeyException
-     * @throws BadPaddingException
-     * @throws IllegalBlockSizeException
-     * @throws IOException
+     * @param privateKey rivateKey
+     * @param content    ontent
+     * @return 使用RSA私钥解密
+     * @throws NoSuchPaddingException    NoSuchPaddingException
+     * @throws NoSuchAlgorithmException  NoSuchAlgorithmException
+     * @throws InvalidKeySpecException   InvalidKeySpecException
+     * @throws InvalidKeyException       InvalidKeyException
+     * @throws BadPaddingException       BadPaddingException
+     * @throws IllegalBlockSizeException IllegalBlockSizeException
+     * @throws IOException               IOException
      */
-    public final static byte[] decrypt(byte[] privateKey, byte[] content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
+    public static byte[] decrypt(byte[] privateKey, byte[] content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
         RSAPrivateKey rsaKey = getRSAPrivateKey(privateKey);
 
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
@@ -173,18 +161,15 @@ public class RSACommon {
         return (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(keySpec);
     }
 
-    private final static byte[] rsaCrypt(byte[] content, Cipher cipher, int blockSize) throws IOException, IllegalBlockSizeException, BadPaddingException {
+    private static byte[] rsaCrypt(byte[] content, Cipher cipher, int blockSize) throws IOException, IllegalBlockSizeException, BadPaddingException {
         int remain = content.length;
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        try {
+        try (ByteArrayOutputStream result = new ByteArrayOutputStream()) {
             while (remain > 0) {
-                int cryptLen = blockSize > remain ? remain : blockSize;
-                result.write(cipher.doFinal(content, content.length - remain, blockSize > remain ? remain : blockSize));
+                int cryptLen = Math.min(blockSize, remain);
+                result.write(cipher.doFinal(content, content.length - remain, Math.min(blockSize, remain)));
                 remain -= cryptLen;
             }
             return result.toByteArray();
-        } finally {
-            result.close();
         }
     }
 }

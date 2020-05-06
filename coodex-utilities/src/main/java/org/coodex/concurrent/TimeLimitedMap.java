@@ -24,15 +24,20 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @param <K>
+ * @param <V>
+ */
 public class TimeLimitedMap<K, V> {
 
+    private final static long DEFAULT_TIMEOUT = 10000L;
     private final static AtomicInteger poolNumber = new AtomicInteger(1);
     private final ScheduledExecutorService scheduledExecutorService;
     private final long timeOut;
-    private Map<K, Task<V>> tasks = new ConcurrentHashMap<K, Task<V>>();
+    private final Map<K, Task<V>> tasks = new ConcurrentHashMap<>();
 
     public TimeLimitedMap() {
-        this(10000);
+        this(DEFAULT_TIMEOUT);
     }
 
     public TimeLimitedMap(long timeOut) {
@@ -45,11 +50,11 @@ public class TimeLimitedMap<K, V> {
         this.scheduledExecutorService = scheduledExecutorService;
     }
 
-    public void put(K key, V value, TimeoutCallback callback) {
+    public void put(K key, V value, Runnable callback) {
         put(key, value, this.timeOut, callback);
     }
 
-    public void put(final K key, V value, long timeOut, final TimeoutCallback callback) {
+    public void put(final K key, V value, long timeOut, final Runnable callback) {
         if (tasks.containsKey(key)) {
             synchronized (tasks) {
                 if (tasks.containsKey(key)) {
@@ -60,15 +65,12 @@ public class TimeLimitedMap<K, V> {
         }
 
         synchronized (tasks) {
-            Task<V> task = new Task<V>();
+            Task<V> task = new Task<>();
             task.value = value;
-            task.future = scheduledExecutorService.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    V v = getAndRemove(key);
-                    if (v != null && callback != null)
-                        callback.timeout();
-                }
+            task.future = scheduledExecutorService.schedule(() -> {
+                V v = getAndRemove(key);
+                if (v != null && callback != null)
+                    callback.run();
             }, getTimeOut(timeOut), TimeUnit.MILLISECONDS);
             tasks.put(key, task);
         }
@@ -92,11 +94,17 @@ public class TimeLimitedMap<K, V> {
     }
 
     private long getTimeOut(long timeOut) {
-        return timeOut > 0 ? timeOut : (this.timeOut > 0 ? this.timeOut : 10000l);
+        return timeOut > 0 ? timeOut : (this.timeOut > 0 ? this.timeOut : DEFAULT_TIMEOUT);
     }
 
-    public interface TimeoutCallback {
+    @Deprecated
+    public interface TimeoutCallback extends Runnable {
         void timeout();
+
+        @Override
+        default void run() {
+            timeout();
+        }
     }
 
     private static class Task<V> {

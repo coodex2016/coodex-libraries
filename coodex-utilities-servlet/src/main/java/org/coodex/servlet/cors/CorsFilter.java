@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package org.coodex.servlet.cors;
 
 import org.coodex.servlet.cors.impl.CORSSettingInConfiguration;
@@ -48,7 +45,7 @@ public class CorsFilter implements Filter {
      * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
      */
 //   @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) {
 
     }
 
@@ -74,13 +71,8 @@ public class CorsFilter implements Filter {
                           final HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        CORSSetter.set(getCorsSetting(), new HeaderSetter() {
-
-            //         @Override
-            public void set(String header, String value) {
-                response.setHeader(header, value);
-            }
-        }, request.getHeader("Origin"));
+        //         @Override
+        CORSSetter.set(getCorsSetting(), response::setHeader, request.getHeader("Origin"));
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);

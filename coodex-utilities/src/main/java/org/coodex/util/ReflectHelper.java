@@ -15,8 +15,7 @@
  */
 package org.coodex.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -29,11 +28,11 @@ import static org.coodex.util.Common.cast;
 /**
  * @author Davidoff
  */
+@Slf4j
 public class ReflectHelper {
 
 
     public static final ClassDecision NOT_NULL = new NotNullDecision();
-    private static Logger log = LoggerFactory.getLogger(ReflectHelper.class);
 
     private ReflectHelper() {
     }
@@ -304,17 +303,28 @@ public class ReflectHelper {
 
     public static void foreachClass(final Processor processor, final ClassNameFilter filter, String... packages) {
         if (processor == null) return;
-        Common.forEach((resource, resourceName) -> {
+        ResourceScaner.newBuilder((resource, resourceName) -> {
             String className = resourceToClassName(resourceName);
             try {
                 processor.process(Class.forName(className));
             } catch (ClassNotFoundException e) {
                 log.warn("load class fail. {}, {}", className, e.getLocalizedMessage());
             }
-        }, (root, resourceName) -> {
+        }).filter((root, resourceName) -> {
             String className = resourceToClassName(resourceName);
             return className != null && filter.accept(className);
-        }, packageToPath(packages));
+        }).build().scan(packageToPath(packages));
+//        Common.forEach((resource, resourceName) -> {
+//            String className = resourceToClassName(resourceName);
+//            try {
+//                processor.process(Class.forName(className));
+//            } catch (ClassNotFoundException e) {
+//                log.warn("load class fail. {}, {}", className, e.getLocalizedMessage());
+//            }
+//        }, (root, resourceName) -> {
+//            String className = resourceToClassName(resourceName);
+//            return className != null && filter.accept(className);
+//        }, packageToPath(packages));
     }
 
     @SuppressWarnings("unused")
@@ -493,10 +503,10 @@ public class ReflectHelper {
 
         private final Method method;
         private final int index;
-        private String name;
-        private Annotation[] annotations;
-        private Class<?> type;
-        private Type genericType;
+        private final String name;
+        private final Annotation[] annotations;
+        private final Class<?> type;
+        private final Type genericType;
 
 
         public MethodParameter(Method method, int index) {

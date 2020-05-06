@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class Throttler<T> extends AbstractCoalition<T> {
     private ScheduledFuture<?> prevFuture = null;
     private long prevTime = 0;
-    private boolean asyncAlways;
+    private final boolean asyncAlways;
 
     public Throttler(Callback<T> c, long interval, boolean asyncAlways) {
         super(c, interval);

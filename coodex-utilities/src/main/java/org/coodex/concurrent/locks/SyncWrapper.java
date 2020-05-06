@@ -23,26 +23,12 @@ import java.util.concurrent.locks.Lock;
 public class SyncWrapper {
 
     public static <V> V call(Lock lock, Callable<V> callable) throws Exception {
-        return call(lock, 0l, callable);
+        return call(lock, 0L, callable);
     }
 
 
     public static <V> V call(final Lock lock, long time, Callable<V> callable) throws Exception {
-//        boolean locked = false;
-//        if (time > 0) {
-//            locked = lock.tryLock(time, TimeUnit.MILLISECONDS);
-//        } else {
-//            lock.lock();
-//            locked = true;
-//        }
-//        if (locked)
-//            try {
-//                return callable.call();
-//            } finally {
-//                lock.unlock();
-//            }
-//        else
-//            throw new RuntimeException(String.format("try lock failed[%d ms]", time));
+
         return call(new ResourceLock() {
             @Override
             public void lock() {
@@ -68,7 +54,7 @@ public class SyncWrapper {
     }
 
     public static <V> V call(ResourceLock lock, Callable<V> callable) throws Exception {
-        return call(lock, 0l, callable);
+        return call(lock, 0L, callable);
     }
 
 

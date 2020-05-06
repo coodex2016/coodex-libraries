@@ -31,7 +31,7 @@ public abstract class CounterChain<T extends Countable> implements Counter<T> {
     private final static Logger log = LoggerFactory.getLogger(CounterChain.class);
 
 
-    private final List<Counter<T>> counters = new ArrayList<Counter<T>>();
+    private final List<Counter<T>> counters = new ArrayList<>();
 
     public void addCounter(Counter<T> counter) {
         if (counter != null && !counters.contains(counter) && !CounterChain.class.isAssignableFrom(counter.getClass())) {
@@ -50,15 +50,12 @@ public abstract class CounterChain<T extends Countable> implements Counter<T> {
     public void count(final T value) {
         if (value != null && counters.size() > 0) {
             for (final Counter<T> counter : counters) {
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        synchronized (counter) {
-                            try {
-                                counter.count(value);
-                            } catch (Throwable th) {
-                                log.warn("count failed. {}, {}", counter.getClass().getName(), th.getLocalizedMessage(), th);
-                            }
+                Runnable runnable = () -> {
+                    synchronized (counter) {
+                        try {
+                            counter.count(value);
+                        } catch (Throwable th) {
+                            log.warn("count failed. {}, {}", counter.getClass().getName(), th.getLocalizedMessage(), th);
                         }
                     }
                 };

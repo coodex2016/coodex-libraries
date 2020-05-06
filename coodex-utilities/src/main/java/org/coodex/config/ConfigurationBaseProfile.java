@@ -22,8 +22,8 @@ import java.util.List;
 
 public class ConfigurationBaseProfile extends AbstractConfiguration {
 
-    private static String PROFILES_ROOT = System.getProperty("config.profile.root", "");
-    private static String DEFAULT_PROFILE = System.getProperty("config.profile.default", "coodex");
+    private static final String PROFILES_ROOT = System.getProperty("config.profile.root", "");
+    private static final String DEFAULT_PROFILE = System.getProperty("config.profile.default", "coodex");
 
 //    public static void main(String[] args) {
 //        ConfigurationBaseProfile profile = new ConfigurationBaseProfile();
@@ -40,37 +40,9 @@ public class ConfigurationBaseProfile extends AbstractConfiguration {
         Profile profile = Profile.get(PROFILES_ROOT + "/" + namespace /* + ".properties" */);
         for (String k : keys) {
             String x = profile.getString(k);
-//            System.out.println(String.format("search %s in: %s", k, namespace));
             if (x != null) return x;
         }
         return null;
     }
 
-
-//    private String search(String key, List<String> namespaces, int deep) {
-//        String profile = "";
-//        String searchKey = "";
-//        if (namespaces == null) {
-//            profile = PROFILES_ROOT + "/" + getDefaultProfile();
-//            return Profile.getProfile(profile).getString(key);
-//        }
-//
-//        for (int i = 0; i < namespaces.size(); i++) {
-//            String ns = namespaces.get(i);
-//
-//            if (Common.isBlank(ns)) continue;
-//            if (i >= deep) {
-//                searchKey += (Common.isBlank(searchKey) ? "" : ".") + ns;
-//            } else {
-//                profile += (Common.isBlank(profile) ? "" : ".") + ns;
-//            }
-//        }
-//        profile = Common.isBlank(profile) ?
-//                PROFILES_ROOT + "/" + getDefaultProfile() :
-//                profile + ".properties";
-//        searchKey += (Common.isBlank(searchKey) ? "" : ".") + key;
-//
-//        String x = Profile.getProfile(profile).getString(searchKey);
-//        return x != null || deep == 0 ? x : search(key, namespaces, deep - 1);
-//    }
 }

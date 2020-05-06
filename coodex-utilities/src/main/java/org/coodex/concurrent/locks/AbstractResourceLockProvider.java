@@ -35,16 +35,16 @@ public abstract class AbstractResourceLockProvider implements ResourceLockProvid
 
     private final static Logger log = LoggerFactory.getLogger(AbstractResourceLockProvider.class);
 
-    private static AbstractResourceLock[] toArraysParam = new AbstractResourceLock[0];
+    private static final AbstractResourceLock[] toArraysParam = new AbstractResourceLock[0];
 
-    private static Comparator<AbstractResourceLock> comparator = (o1, o2) -> (int) (o1.getLastActive() - o2.getLastActive());
+    private static final Comparator<AbstractResourceLock> comparator = (o1, o2) -> (int) (o1.getLastActive() - o2.getLastActive());
 
-    private static Singleton<ScheduledExecutorService> scheduledExecutorServiceSingleton = Singleton.with(
+    private static final Singleton<ScheduledExecutorService> scheduledExecutorServiceSingleton = Singleton.with(
             () -> ExecutorsHelper.newSingleThreadScheduledExecutor("cleanDeathResource")
     );
     protected final Map<ResourceId, AbstractResourceLock> locksMap = new HashMap<>(8);
 
-    private Runnable cleanRunner = () -> {
+    private final Runnable cleanRunner = () -> {
         try {
             cleanDeathResource();
         } finally {

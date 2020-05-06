@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- *
- */
 package org.coodex.util;
 
 import java.util.UUID;
@@ -68,11 +64,6 @@ public class UUIDHelper {
     public static String getUUIDStringWithBase58() {
         return Base58.encode(getUUIDBytes());
     }
-
-
-    public static void main(String[] args) {
-        for (int i = 0; i < 1000; i++)
-            System.out.println(getUUIDStringWithBase58());
-    }
+    
 
 }

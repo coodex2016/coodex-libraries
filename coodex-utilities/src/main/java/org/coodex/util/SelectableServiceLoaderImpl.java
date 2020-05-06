@@ -16,8 +16,7 @@
 
 package org.coodex.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -36,6 +35,7 @@ import static org.coodex.util.GenericTypeHelper.typeToClass;
  * Created by davidoff shen on 2017-03-09.
  */
 @SuppressWarnings("unused")
+@Slf4j
 public abstract class SelectableServiceLoaderImpl<Param_Type, T extends SelectableService<Param_Type>>
         implements SelectableServiceLoader<Param_Type, T>, ServiceLoader<T> {
 
@@ -45,8 +45,6 @@ public abstract class SelectableServiceLoaderImpl<Param_Type, T extends Selectab
                     + method.getDeclaringClass().getName()
                     + "." + method.getName());
 
-
-    private final static Logger log = LoggerFactory.getLogger(SelectableServiceLoaderImpl.class);
 
     private ServiceLoader<T> serviceLoaderFacade;
     private T defaultService = null;

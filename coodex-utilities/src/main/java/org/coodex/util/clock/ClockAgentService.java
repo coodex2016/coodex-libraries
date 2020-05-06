@@ -38,8 +38,8 @@ public class ClockAgentService extends Thread {
 
     private final int port;
     private final String host;
+    private final DefaultClockAgent defaultClockAgent = new DefaultClockAgent();
     private boolean listening = false;
-    private DefaultClockAgent defaultClockAgent = new DefaultClockAgent();
 
     public ClockAgentService() {
         this("0.0.0.0", PORT);
@@ -61,16 +61,14 @@ public class ClockAgentService extends Thread {
     @Override
     public void run() {
         try {
-            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-            try {
+            try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
                 serverSocketChannel.configureBlocking(false);
                 serverSocketChannel.socket().bind(new InetSocketAddress(host, port));
                 log.info("Clock Agent Service start [{}:{}]....", host, port);
                 this.listening = true;
                 Selector selector = Selector.open();
                 serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-                while (true) {
-                    if(!this.listening) break;
+                while (this.listening) {
 
                     if (selector.select(3000) == 0) {
                         continue;
@@ -92,7 +90,6 @@ public class ClockAgentService extends Thread {
                     }
                 }
             } finally {
-                serverSocketChannel.close();
                 log.debug("Clock Agent Service shutdown.");
             }
         } catch (IOException e) {
@@ -100,7 +97,7 @@ public class ClockAgentService extends Thread {
         }
     }
 
-    public void shutdown(){
+    public void shutdown() {
         this.listening = false;
     }
 }

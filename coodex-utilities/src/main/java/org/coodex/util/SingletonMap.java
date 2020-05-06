@@ -17,71 +17,52 @@
 package org.coodex.util;
 
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.coodex.concurrent.Debouncer;
 import org.coodex.concurrent.ExecutorsHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Builder
 public class SingletonMap<K, V> {
 
     private static final Singleton<ScheduledExecutorService> DEFAULT_SCHEDULED_EXECUTOR_SERVICE
             = Singleton.with(() -> ExecutorsHelper.newSingleThreadScheduledExecutor("singletonMap-DEFAULT"));
 
-    private final static Logger log = LoggerFactory.getLogger(org.coodex.util.SingletonMap.class);
-    private final Map<K, Value<K, V>> map = new HashMap<>();
+    private final Map<K, Value<K, V>> map;
 
-    private Function<K, V> function;
-    private K nullKey;
+    private final Function<K, V> function;
+    private final K nullKey;
     @Builder.Default
     private boolean activeOnGet = false;
     @Builder.Default
     private long maxAge = 0;
+    @Builder.Default
+    private Supplier<Map<K, Value<K, V>>> mapSupplier = ConcurrentHashMap::new;
+
     private ScheduledExecutorService scheduledExecutorService;
 
-//    @Deprecated
-//    public SingletonMap(Function<K, V> builder) {
-//        this(builder, 0, null);
-//    }
-//
-//    /**
-//     * @param builder builder
-//     * @param maxAge  map内对象的最大存在时长，单位为毫秒
-//     */
-//    @Deprecated
-//    public SingletonMap(Function<K, V> builder, long maxAge) {
-//        this(builder, maxAge, null);
-//    }
-//
-//    /**
-//     * @param builder                  builder
-//     * @param maxAge                   map内对象的最大存在时长，单位为毫秒
-//     * @param scheduledExecutorService scheduledExecutorService
-//     */
-//    @Deprecated
-//    public SingletonMap(Function<K, V> builder, long maxAge, ScheduledExecutorService scheduledExecutorService) {
-//        this(builder, null, false, maxAge, scheduledExecutorService);
-//    }
-
     @SuppressWarnings("unused")
-    private SingletonMap(Function<K, V> function,
+    private SingletonMap(Map<K, Value<K, V>> map, Function<K, V> function,
                          K nullKey, boolean activeOnGet,
-                         long maxAge, ScheduledExecutorService scheduledExecutorService) {
+                         long maxAge, Supplier<Map<K, Value<K, V>>> mapSupplier,
+                         ScheduledExecutorService scheduledExecutorService) {
         this.function = function;
         this.nullKey = nullKey;
         this.maxAge = Math.max(0, maxAge);
+        this.mapSupplier = mapSupplier == null ? ConcurrentHashMap::new : mapSupplier;
+        this.map = map == null ? this.mapSupplier.get() : map;
         if (this.maxAge > 0) {
             this.activeOnGet = activeOnGet;
             this.scheduledExecutorService = scheduledExecutorService == null ? DEFAULT_SCHEDULED_EXECUTOR_SERVICE.get() : scheduledExecutorService;
         }
     }
-
 
     public boolean containsKey(Object key) {
         return map.containsKey(key == null ? nullKey : key);
@@ -181,11 +162,6 @@ public class SingletonMap<K, V> {
         }
     }
 
-    static class Value<K, V> {
-        private Debouncer<K> debouncer;
-        private V value;
-    }
-
 //    @lombok.Builder(access = AccessLevel.PUBLIC)
 //    @Getter
 //    @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -213,5 +189,10 @@ public class SingletonMap<K, V> {
 //            return new SingletonMap<>(this);
 //        }
 //    }
+
+    static class Value<K, V> {
+        private Debouncer<K> debouncer;
+        private V value;
+    }
 
 }

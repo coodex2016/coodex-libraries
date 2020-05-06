@@ -12,6 +12,9 @@
     "tbfed-pagefooter",
     "popup"
   ],
+  "variables": {
+    "coodex_version": "0.5.0-SNAPSHOT"
+  },
   "pluginsConfig": {
     "tbfed-pagefooter": {
       "copyright":"Copyright &copy coodex.org 2020",

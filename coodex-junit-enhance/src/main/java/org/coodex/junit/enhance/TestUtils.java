@@ -44,9 +44,9 @@ public class TestUtils {
     public static final Logger logger = (Logger) Proxy.newProxyInstance(Logger.class.getClassLoader(), new Class<?>[]{Logger.class},
             (proxy, method, args) -> {
                 if (args.length > 0) {
-                    return method.invoke(getLogger(), args);
+                    return method.invoke(_getLogger(), args);
                 } else {
-                    return method.invoke(getLogger());
+                    return method.invoke(_getLogger());
                 }
             });
     private static final LazySelectableServiceLoader<Description, ContextProvider> CONTEXT_PROVIDER_LOADER =
@@ -68,7 +68,11 @@ public class TestUtils {
 
     }
 
-    private static Logger getLogger() {
+    public static Logger getLogger() {
+        return logger;
+    }
+
+    private static Logger _getLogger() {
         String name = testCaseName();
         return Common.isBlank(name) ? log : LOGGER_PROVIDER_LOADER.get().getLogger(name);
     }

@@ -25,12 +25,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public final class GetCert {
-    private static final char[] HEXDIGITS = "0123456789abcdef".toCharArray();
-
+    //    private static final char[] HEXDIGITS = "0123456789abcdef".toCharArray();
+//
     public static void saveCertificateFromServer(String host, int port, String storePath) throws NoSuchAlgorithmException, KeyManagementException, IOException, CertificateEncodingException {
 
         SSLContext context = SSLContext.getInstance("SSL");
@@ -44,7 +43,7 @@ public final class GetCert {
         try {
             socket.startHandshake();
             socket.close();
-        } catch (Throwable th) {
+        } catch (Throwable ignored) {
         }
         if (tm.chain == null || tm.chain.length == 0) {
             System.out.println("Could not obtain server certificate chain");
@@ -64,9 +63,9 @@ public final class GetCert {
                     + cert.getSubjectDN());
             System.out.println("   Issuer  " + cert.getIssuerDN());
             sha1.update(cert.getEncoded());
-            System.out.println("   sha1    " + toHexString(sha1.digest()));
+            System.out.println("   sha1    " + Common.byte2hex(sha1.digest()));
             md5.update(cert.getEncoded());
-            System.out.println("   md5     " + toHexString(md5.digest()));
+            System.out.println("   md5     " + Common.byte2hex(md5.digest()));
             System.out.println();
         }
 
@@ -91,12 +90,9 @@ public final class GetCert {
             name = host + "." + port + "-" + ++index;
         }
         File x = Common.getNewFile(storePath + File.separatorChar + name + ".cer");
-        OutputStream os = new FileOutputStream(x);
-        try {
+        try (OutputStream os = new FileOutputStream(x)) {
             os.write(cert.getEncoded());
             os.flush();
-        } finally {
-            os.close();
         }
         System.out.println("certificate saved: " + x.getAbsolutePath());
     }
@@ -106,16 +102,6 @@ public final class GetCert {
         return f.exists();
     }
 
-    private static String toHexString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder(bytes.length * 3);
-        for (int b : bytes) {
-            b &= 0xff;
-            sb.append(HEXDIGITS[b >> 4]);
-            sb.append(HEXDIGITS[b & 15]);
-            sb.append(' ');
-        }
-        return sb.toString();
-    }
 
     private static class SavingTrustManager implements X509TrustManager {
 
@@ -125,13 +111,11 @@ public final class GetCert {
             throw new UnsupportedOperationException();
         }
 
-        public void checkClientTrusted(X509Certificate[] chain, String authType)
-                throws CertificateException {
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
             throw new UnsupportedOperationException();
         }
 
-        public void checkServerTrusted(X509Certificate[] chain, String authType)
-                throws CertificateException {
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {
             this.chain = chain;
         }
     }

@@ -16,6 +16,7 @@
 
 package org.coodex.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.coodex.closure.StackClosureContext;
 import org.coodex.config.Config;
 import org.slf4j.Logger;
@@ -28,14 +29,15 @@ import java.util.function.Supplier;
 
 import static org.coodex.util.Common.cast;
 
+@Slf4j
 public class Tracer {
-    private final static Logger log = LoggerFactory.getLogger(Tracer.class);
+
     private static final StackClosureContext<Map<String, Object>> tracer_context = new StackClosureContext<>();
-    private static Singleton<Boolean> TRACE_ENABLED = Singleton.with(() -> {
+    private static final Singleton<Boolean> TRACE_ENABLED = Singleton.with(() -> {
 //            return Common.toBool(System.getProperty("org.coodex.util.Tracer"), false);
         return Config.getValue("org.coodex.util.Tracer", false);
     });
-    private static String START_TIME_KEY = Common.getUUIDStr();
+    private static final String START_TIME_KEY = Common.getUUIDStr();
     private Logger logger = log;
     private Supplier<String> nameSupplier = null;
 

@@ -29,16 +29,4 @@ public interface ClosureContext<T> {
 
     Object call(T var, Supplier<?> supplier);
 
-//    @Deprecated
-//    Object call(T var, CallableClosure callable) throws Throwable;
-//
-//    /**
-//     * 如果运行有异常，则转为运行期异常
-//     *
-//     * @param var
-//     * @param callableClosure
-//     * @return
-//     */
-//    @Deprecated
-//    Object useRTE(T var, CallableClosure callableClosure);
 }

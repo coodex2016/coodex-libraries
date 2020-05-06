@@ -19,7 +19,7 @@ package org.coodex.util;
 import java.net.URL;
 
 public class ProfileProviderBaseProperties extends AbstractProfileProvider {
-    private static String[] SUPPORTED = new String[]{".properties"};
+    private static final String[] SUPPORTED = new String[]{".properties"};
 
     @Override
     public String[] getSupported() {

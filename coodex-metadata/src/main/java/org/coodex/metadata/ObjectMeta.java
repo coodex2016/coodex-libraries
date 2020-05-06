@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 coodex.org (jujus.shen@126.com)
+ * Copyright (c) 2020 coodex.org (jujus.shen@126.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,9 @@
  * limitations under the License.
  */
 
-package org.coodex.closure;
+package org.coodex.metadata;
 
-import org.coodex.util.Common;
+public interface ObjectMeta extends Meta<Object> {
 
-import java.util.function.Supplier;
-
-/**
- * @deprecated 使用 {@link java.util.function.Supplier}替代
- */
-@Deprecated
-public interface CallableClosure {
-
-    Object call() throws Throwable;
-
-    default Supplier<?> toSupplier(){
-        return ()-> {
-            try {
-                return call();
-            } catch (Throwable throwable) {
-                throw Common.rte(throwable);
-            }
-        };
-    }
+    Meta<?> getPropertiesMeta();
 }

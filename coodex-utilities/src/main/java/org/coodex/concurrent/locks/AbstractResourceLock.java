@@ -28,7 +28,7 @@ public abstract class AbstractResourceLock implements ResourceLock {
 
 
     private final ResourceId resourceId;
-    private ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
     private long lastActive = Clock.currentTimeMillis();
 
     public AbstractResourceLock(ResourceId resourceId) {
@@ -44,6 +44,7 @@ public abstract class AbstractResourceLock implements ResourceLock {
     /**
      * @return 逻辑锁是否已分配
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     protected abstract boolean allocated();
 
     /**
@@ -61,7 +62,7 @@ public abstract class AbstractResourceLock implements ResourceLock {
     /**
      * 尝试申请逻辑锁，最长time毫秒
      *
-     * @param time
+     * @param time time
      * @return 申请成功返回true, 否则false
      */
     protected abstract boolean tryAlloc(long time);
@@ -167,7 +168,7 @@ public abstract class AbstractResourceLock implements ResourceLock {
     public void unlock() {
         active();
 
-        if(lock.getQueueLength() ==0 && lock.getHoldCount() == 1){
+        if (lock.getQueueLength() == 0 && lock.getHoldCount() == 1) {
             release();
         }
         lock.unlock();

@@ -39,8 +39,6 @@ final class ExecutorWrapper {
     static <T extends ExecutorService> T wrap(T executorService) {
         // TODO 动态代理，当Executor shutdown或shutdownNow的时候脱离管理
         if (executorService instanceof ScheduledExecutorService) {
-//            final ScheduledExecutorService scheduledExecutorService = (ScheduledExecutorService) executorService;
-//            final ScheduledExecutorService scheduledExecutorService = new ScheduledExecutorServiceImpl((ScheduledExecutorService) executorService);
             executorService = Common.cast(Proxy.newProxyInstance(
                     ScheduledExecutorService.class.getClassLoader(),
                     getAllInterfaces(executorService.getClass()),

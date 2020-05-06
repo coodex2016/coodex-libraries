@@ -44,10 +44,4 @@ public abstract class AbstractCoalition<T> implements Coalition<T> {
         this(c, interval, sesSingleton.get());
     }
 
-
-//    public void terminate() {
-//        scheduledExecutorService.shutdownNow();
-//    }
-
-
 }

@@ -17,17 +17,12 @@
 package org.coodex.util;
 
 import java.util.Locale;
+import java.util.function.Supplier;
 
 public abstract class AbstractTranslateService implements TranslateService {
 
-    private static ServiceLoader<DefaultLocaleProvider> DEFAULT_LOCATE_PROVIDER_LOADER = new ServiceLoaderImpl<DefaultLocaleProvider>(
-            new DefaultLocaleProvider() {
-                @Override
-                public Locale getDefault() {
-                    return Locale.getDefault();
-                }
-            }
-    ) {
+    private static final ServiceLoader<DefaultLocaleProvider> DEFAULT_LOCATE_PROVIDER_LOADER
+            = new LazyServiceLoader<DefaultLocaleProvider>((Supplier<DefaultLocaleProvider>) () -> Locale::getDefault) {
     };
 
     @Override

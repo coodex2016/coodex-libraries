@@ -292,6 +292,7 @@
         <module>shared-cache</module>
         <module>shared-cache-jedis</module>
         <module>shared-cache-memcached</module>
+        <module>coodex-metadata</module>
 
     </modules>
 

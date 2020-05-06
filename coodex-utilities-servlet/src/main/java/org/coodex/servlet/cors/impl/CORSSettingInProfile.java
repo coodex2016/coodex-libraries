@@ -29,8 +29,7 @@ import org.slf4j.LoggerFactory;
  */
 public class CORSSettingInProfile implements CORSSetting {
 
-    private static Logger log = LoggerFactory
-            .getLogger(CORSSettingInProfile.class);
+    private static final Logger log = LoggerFactory.getLogger(CORSSettingInProfile.class);
 
     private final Profile profile;
 

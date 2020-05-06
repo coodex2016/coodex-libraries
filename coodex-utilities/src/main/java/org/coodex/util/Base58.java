@@ -17,8 +17,9 @@
 package org.coodex.util;
 
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
  * Created with IntelliJ IDEA.
@@ -33,9 +34,7 @@ public class Base58 {
     private static final int[] INDEXES = new int[128];
 
     static {
-        for (int i = 0; i < INDEXES.length; i++) {
-            INDEXES[i] = -1;
-        }
+        Arrays.fill(INDEXES, -1);
         for (int i = 0; i < ALPHABET.length; i++) {
             INDEXES[ALPHABET[i]] = i;
         }
@@ -77,11 +76,7 @@ public class Base58 {
         }
 
         byte[] output = copyOfRange(temp, j, temp.length);
-        try {
-            return new String(output, "US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);  // Cannot happen.
-        }
+        return new String(output, StandardCharsets.US_ASCII);
     }
 
     public static byte[] decode(String input) throws IllegalArgumentException {
@@ -94,7 +89,7 @@ public class Base58 {
             char c = input.charAt(i);
 
             int digit58 = -1;
-            if (c >= 0 && c < 128) {
+            if (c < 128) {
                 digit58 = INDEXES[c];
             }
             if (digit58 < 0) {

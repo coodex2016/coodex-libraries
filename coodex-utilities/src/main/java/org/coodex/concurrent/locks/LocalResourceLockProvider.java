@@ -16,22 +16,12 @@
 
 package org.coodex.concurrent.locks;
 
+
 public class LocalResourceLockProvider extends AbstractResourceLockProvider {
 
     public LocalResourceLockProvider() {
         super();
     }
-
-
-//    @Override
-//    public ResourceLock getLock(ResourceId id) {
-//        synchronized (locksMap) {
-//            if (!locksMap.containsKey(id)) {
-//                locksMap.put(id, new LocalResourceLock(id));
-//            }
-//            return locksMap.get(id).active();
-//        }
-//    }
 
     @Override
     public boolean accept(ResourceId param) {

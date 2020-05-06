@@ -20,24 +20,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class ProfileBasedTranslateService extends AbstractTranslateService {
 
     private final static Logger log = LoggerFactory.getLogger(ProfileBasedTranslateService.class);
 
 
-    private List<ResourcesMapper> mappers = new LinkedList<>();
+    private final List<ResourcesMapper> mappers = new LinkedList<>();
 
-    private SingletonMap<CacheKey, String> translateCache = SingletonMap.<CacheKey, String>builder()
+    private final SingletonMap<CacheKey, String> translateCache = SingletonMap.<CacheKey, String>builder()
             .function(key -> ProfileBasedTranslateService.this.get(key.key, key.locale)).build();
 
     ProfileBasedTranslateService() {
-        Common.forEach((resource, resourceName) -> mappers.add(new ResourcesMapper(resourceName, resource)),
-                (root, resourceName) -> {
+        ResourceScaner.newBuilder((resource, resourceName) -> mappers.add(
+                new ResourcesMapper(resourceName, resource, Integer.MAX_VALUE - ResourceScaner.getExtraPathIndex())))
+                .filter((root, resourceName) -> {
                     String[] allSupported = Profile.allSupportedFileExt();
                     for (String ext : allSupported) {
                         if (resourceName.endsWith(ext)) {
@@ -45,8 +43,21 @@ public class ProfileBasedTranslateService extends AbstractTranslateService {
                         }
                     }
                     return false;
-                },
-                "i18n");
+                })
+                .extraPath(true)
+                .build()
+                .scan("i18n");
+//        Common.forEach((resource, resourceName) -> mappers.add(new ResourcesMapper(resourceName, resource)),
+//                (root, resourceName) -> {
+//                    String[] allSupported = Profile.allSupportedFileExt();
+//                    for (String ext : allSupported) {
+//                        if (resourceName.endsWith(ext)) {
+//                            return true;
+//                        }
+//                    }
+//                    return false;
+//                },
+//                "i18n");
     }
 
     private static int countOfSlash(String resourceName) {
@@ -89,24 +100,25 @@ public class ProfileBasedTranslateService extends AbstractTranslateService {
         return null;
     }
 
-//    private void appendResource(URL resource, String resourceName) {
-//        mappers.add(new ResourcesMapper(resourceName, resource));
-//    }
-
     private static class ResourcesMapper implements Comparable<ResourcesMapper> {
+        private final String path;
+        private final Boolean isFile;
+        private final String ext;
+        private final int deep;
+        private final URL resource;
+        private final int fileOrder;
         private String name;
-        private String path;
-        private Boolean isFile;
-        //        private Boolean isYaml;
-        private String ext;
-        private int deep;
         private String language = null;
         private String country = null;
-        private URL resource;
 
-        ResourcesMapper(String resourceName, URL resource) {
+//        ResourcesMapper(String resourceName, URL resource) {
+//            this(resourceName, resource, 0);
+//        }
+
+        ResourcesMapper(String resourceName, URL resource, int fileOrder) {
             this.resource = resource;
             this.isFile = resource.toString().startsWith("file:");
+            this.fileOrder = fileOrder;
             this.deep = countOfSlash(resourceName);
             int indexEnd = resourceName.lastIndexOf('.');
             int indexStart = resourceName.lastIndexOf('/');
@@ -142,6 +154,7 @@ public class ProfileBasedTranslateService extends AbstractTranslateService {
         /**
          * 排序规则
          * 文件系统 高于jar包
+         * 同是文件，profilePath中越靠前的越优先
          * 名称不同的，越长越优先（匹配度越高）
          * 名称相同的，越深越优先
          * 深度相同的，按包字典序
@@ -155,6 +168,8 @@ public class ProfileBasedTranslateService extends AbstractTranslateService {
         @Override
         public int compareTo(ResourcesMapper o) {
             int x = isFile.compareTo(o.isFile);
+            if (x != 0) return -x;
+            x = fileOrder - o.fileOrder;
             if (x != 0) return -x;
             x = name.length() - o.name.length();
             if (x != 0) return -x;
@@ -172,12 +187,11 @@ public class ProfileBasedTranslateService extends AbstractTranslateService {
             if (x != 0) return -x;
             return resource.toString().compareTo(o.resource.toString());
         }
-
     }
 
     private static class CacheKey {
-        private String key;
-        private Locale locale;
+        private final String key;
+        private final Locale locale;
 
         CacheKey(String key, Locale locale) {
             this.key = key;
@@ -191,8 +205,8 @@ public class ProfileBasedTranslateService extends AbstractTranslateService {
 
             CacheKey cacheKey = (CacheKey) o;
 
-            if (key != null ? !key.equals(cacheKey.key) : cacheKey.key != null) return false;
-            return locale != null ? locale.equals(cacheKey.locale) : cacheKey.locale == null;
+            if (!Objects.equals(key, cacheKey.key)) return false;
+            return Objects.equals(locale, cacheKey.locale);
         }
 
         @Override
@@ -210,14 +224,6 @@ public class ProfileBasedTranslateService extends AbstractTranslateService {
                     '}';
         }
     }
-
-//    public static void main(String[] args) {
-//        Integer[] buffer = new Integer[]{6,4,123,872,0};
-//        Arrays.sort(buffer);
-//        for(Integer x: buffer){
-//            System.out.print(x + "  ");
-//        }
-//    }
 
 
 }

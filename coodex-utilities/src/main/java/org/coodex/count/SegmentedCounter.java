@@ -22,9 +22,7 @@ package org.coodex.count;
 public interface SegmentedCounter<T extends Countable> extends Counter<T> {
 
     /**
-     * 怎么分段
-     *
-     * @return
+     * @return 怎么分段
      */
     Segmentation getSegmentation();
 

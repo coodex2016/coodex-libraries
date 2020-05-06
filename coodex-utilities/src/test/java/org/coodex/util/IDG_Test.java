@@ -25,7 +25,7 @@ public class IDG_Test {
     public static void main(String[] args) {
         StringJoiner joiner = new StringJoiner(", ");
         for (int i = 0; i < 1000; i++) {
-            joiner.add(IDGenerator.genId());
+            joiner.add(IDGenerator.newId());
         }
         System.out.println(joiner.toString());
     }

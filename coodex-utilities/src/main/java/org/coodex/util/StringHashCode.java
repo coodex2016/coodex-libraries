@@ -30,8 +30,8 @@ public class StringHashCode {
         int seed = 131;
         int hash = 0;
         byte[] buf = str.getBytes();
-        for (int i = 0; i < buf.length; i++) {
-            hash = hash * seed + (int) buf[i];
+        for (byte b : buf) {
+            hash = hash * seed + (int) b;
         }
         return hash & 0x7FFFFFFF;
     }

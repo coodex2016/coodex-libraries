@@ -30,7 +30,6 @@ public class ExecutorsHelper {
     }
 
 
-
     private static PriorityRunnable getPriorityRunnable(Runnable runnable) {
         return runnable instanceof PriorityRunnable ?
                 (PriorityRunnable) runnable :
@@ -43,8 +42,6 @@ public class ExecutorsHelper {
 
     public static ExecutorService newPriorityThreadPool(final int coreSize, int maxSize, int maxWait, long keepAliveTime, String namePrefix) {
         final PoolSize poolSize = new PoolSize(coreSize, maxSize).invoke();
-//        int finalCoreSize = poolSize.getFinalCoreSize();
-//        int finalMaxSize = poolSize.getFinalMaxSize();
         return newThreadPool(keepAliveTime, namePrefix, poolSize, new CoodexPriorityBlockingQueue(maxWait));
     }
 
@@ -72,20 +69,8 @@ public class ExecutorsHelper {
     }
 
     public static ExecutorService newLinkedThreadPool(final int coreSize, int maxSize, int maxWait, long keepAliveTime, String namePrefix) {
-//        int finalCoreSize = Math.max(coreSize, 1);
-//        int finalMaxSize = maxSize >= coreSize ? maxSize : Integer.MAX_VALUE;
-//        if (finalMaxSize == Integer.MAX_VALUE) finalMaxSize = Integer.MAX_VALUE;
         final PoolSize poolSize = new PoolSize(coreSize, maxSize).invoke();
         return newThreadPool(keepAliveTime, namePrefix, poolSize, new CoodexLinkedBlockingQueue(maxWait));
-//        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
-//                poolSize.getFinalCoreSize(),
-//                poolSize.getFinalMaxSize(),
-//                keepAliveTime, TimeUnit.SECONDS,
-//                linkedBlockingQueue,
-//                new DefaultNamedThreadFactory(namePrefix)
-//        );
-//        linkedBlockingQueue.setThreadPoolExecutor(threadPool);
-//        return ExecutorWrapper.wrap(threadPool);
     }
 
     public static ExecutorService newFixedThreadPool(int nThreads, String namePrefix) {
@@ -121,8 +106,6 @@ public class ExecutorsHelper {
     }
 
     public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize, String namePrefix) {
-//        return ExecutorWrapper.wrap(Executors.newScheduledThreadPool(corePoolSize,
-//                new DefaultNamedThreadFactory(namePrefix)));
         return newScheduledThreadPool(corePoolSize, new DefaultNamedThreadFactory(namePrefix));
     }
 
@@ -214,10 +197,7 @@ public class ExecutorsHelper {
 
         @Override
         public boolean offer(Runnable runnable) {
-//            if (threadPoolExecutor == null) return super.offer(runnable);
             runnable = getPriorityRunnable(runnable);
-//            return threadPoolExecutor.getPoolSize() < maximumPoolSize ?
-//                    false : super.offer(runnable);
             return threadPoolExecutor.getPoolSize() >= threadPoolExecutor.getMaximumPoolSize() &&
                     size() < maximumSize &&
                     super.offer(runnable);
@@ -226,8 +206,8 @@ public class ExecutorsHelper {
     }
 
     private static class PoolSize {
-        private int coreSize;
-        private int maxSize;
+        private final int coreSize;
+        private final int maxSize;
         private int finalCoreSize;
         private int finalMaxSize;
 

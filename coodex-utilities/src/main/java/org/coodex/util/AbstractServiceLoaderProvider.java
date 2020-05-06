@@ -26,15 +26,8 @@ import java.util.Map;
  */
 public abstract class AbstractServiceLoaderProvider implements ServiceLoaderProvider {
 
-    private SingletonMap<Type, Map<String, Object>> cache = SingletonMap.<Type, Map<String, Object>>builder().build();
+    private final SingletonMap<Type, Map<String, Object>> cache = SingletonMap.<Type, Map<String, Object>>builder().build();
 
-
-//    @Override
-//    public <S> Map<String, S> load(Class<S> serviceClass) {
-//        Map<String, S> map = new HashMap<>();
-//        load((Type) serviceClass).forEach((key, value) -> map.put(key, Common.cast(value)));
-//        return map;
-//    }
 
     @Override
     public Map<String, Object> load(Type serviceType) {

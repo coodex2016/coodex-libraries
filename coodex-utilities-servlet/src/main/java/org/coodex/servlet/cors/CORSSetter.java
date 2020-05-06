@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package org.coodex.servlet.cors;
 
 import java.util.StringTokenizer;

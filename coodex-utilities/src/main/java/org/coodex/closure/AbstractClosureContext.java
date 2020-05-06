@@ -41,9 +41,4 @@ public abstract class AbstractClosureContext<T> {
         }
     }
 
-    @Deprecated
-    protected final Object closureRun(T variant, CallableClosure callable) throws Throwable {
-        return get(variant, callable == null ? null : callable.toSupplier());
-    }
-
 }

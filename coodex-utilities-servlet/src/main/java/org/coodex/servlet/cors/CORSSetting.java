@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package org.coodex.servlet.cors;
 
 /**
@@ -41,44 +38,32 @@ public interface CORSSetting {
     String KEY_ALLOW_CREDENTIALS = "allowCredentials";
 
     /**
-     * 空格或逗号分隔，为null表示不需要设置
-     *
-     * @return
+     * @return 空格或逗号分隔，为null表示不需要设置
      */
     String allowOrigin();
 
     /**
-     * 依RFC 2616规范，使用逗号分隔，为null表示不需要设置
-     *
-     * @return
+     * @return 依RFC 2616规范，使用逗号分隔，为null表示不需要设置
      */
     String exposeHeaders();
 
     /**
-     * 依RFC 2616规范，使用逗号分隔，为null表示不需要设置
-     *
-     * @return
+     * @return 依RFC 2616规范，使用逗号分隔，为null表示不需要设置
      */
     String allowMethod();
 
     /**
-     * 依RFC 2616规范，使用逗号分隔，为null表示不需要设置
-     *
-     * @return
+     * @return 依RFC 2616规范，使用逗号分隔，为null表示不需要设置
      */
     String allowHeaders();
 
     /**
-     * 为null表示不需要设置
-     *
-     * @return
+     * @return 为null表示不需要设置
      */
     Long maxAge();
 
     /**
-     * 为null表示不需要设置
-     *
-     * @return
+     * @return 为null表示不需要设置
      */
     Boolean allowCredentials();
 

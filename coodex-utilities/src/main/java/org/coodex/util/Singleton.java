@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 public class Singleton<T> {
 
-    private Supplier<T> supplier;
+    private final Supplier<T> supplier;
     private volatile T instance = null;
     private volatile boolean loaded = false;
 

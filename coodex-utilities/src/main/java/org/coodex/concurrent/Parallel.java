@@ -30,12 +30,6 @@ import java.util.concurrent.ExecutorService;
  */
 public class Parallel {
 
-    //    private static RunnerWrapper defaultWrapper = new RunnerWrapper() {
-//        @Override
-//        public Runnable wrap(Runnable runnable) {
-//            return runnable;
-//        }
-//    };
     private final ExecutorService executorService;
     private final RunnerWrapper wrapper;
 
@@ -52,7 +46,7 @@ public class Parallel {
         this.wrapper = wrapper;
     }
 
-    public Batch run(Runnable... runnables) {
+    public Batch run(@SuppressWarnings("SpellCheckingInspection") Runnable... runnables) {
 
         Batch batch = new Batch();
         batch.start = Clock.currentTimeMillis();
@@ -249,7 +243,7 @@ public class Parallel {
 
 
     public static class Batch extends AbstractBatch {
-        private List<Task> tasks = new ArrayList<>();
+        private final List<Task> tasks = new ArrayList<>();
 
         public List<Task> getTasks() {
             return tasks;
@@ -257,7 +251,7 @@ public class Parallel {
     }
 
     public static class CallableBatch<V> extends AbstractBatch {
-        private List<CallableTask<V>> tasks = new ArrayList<>();
+        private final List<CallableTask<V>> tasks = new ArrayList<>();
 
         public List<CallableTask<V>> getTasks() {
             return tasks;

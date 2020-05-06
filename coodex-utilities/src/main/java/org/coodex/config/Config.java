@@ -50,11 +50,11 @@ public class Config {
 //            }
 //    );
 
-    private static ServiceLoader<DefaultConfigurationProvider> configurationProviderLazyServiceLoader =
+    private static final ServiceLoader<DefaultConfigurationProvider> configurationProviderLazyServiceLoader =
             new LazyServiceLoader<DefaultConfigurationProvider>(ConfigurationBaseProfile::new) {
             };
 
-    private static ServiceLoader<Configuration> configurationServiceLoader =
+    private static final ServiceLoader<Configuration> configurationServiceLoader =
             new LazyServiceLoader<Configuration>(() -> configurationProviderLazyServiceLoader.get().get()) {
 
             };
