@@ -17,13 +17,14 @@
 package org.coodex.concurrent;
 
 import org.coodex.util.Clock;
-import org.coodex.util.Common;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+
+import static org.coodex.id.IDGenerator.newId;
 
 /**
  * 提供一个多任务并行处理功能
@@ -217,7 +218,7 @@ public class Parallel {
 
 
     private static class AbstractBatch {
-        String id = Common.getUUIDStr();
+        String id = newId();
         long start;
         long end;
 

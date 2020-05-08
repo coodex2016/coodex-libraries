@@ -63,9 +63,9 @@ public final class GetCert {
                     + cert.getSubjectDN());
             System.out.println("   Issuer  " + cert.getIssuerDN());
             sha1.update(cert.getEncoded());
-            System.out.println("   sha1    " + Common.byte2hex(sha1.digest()));
+            System.out.println("   sha1    " + Common.base16Encode(sha1.digest()));
             md5.update(cert.getEncoded());
-            System.out.println("   md5     " + Common.byte2hex(md5.digest()));
+            System.out.println("   md5     " + Common.base16Encode(md5.digest()));
             System.out.println();
         }
 
@@ -89,7 +89,7 @@ public final class GetCert {
         while (isExists(storePath + File.separatorChar + name + ".cer")) {
             name = host + "." + port + "-" + ++index;
         }
-        File x = Common.getNewFile(storePath + File.separatorChar + name + ".cer");
+        File x = Common.newFile(storePath + File.separatorChar + name + ".cer");
         try (OutputStream os = new FileOutputStream(x)) {
             os.write(cert.getEncoded());
             os.flush();

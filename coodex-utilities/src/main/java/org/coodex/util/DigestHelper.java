@@ -45,7 +45,7 @@ public class DigestHelper {
 //        } catch (NoSuchAlgorithmException e) {
 //        }
 //        return Common.byte2hex(md.digest(buf));
-        return Common.byte2hex(digestBuff(buf, algorithm));
+        return Common.base16Encode(digestBuff(buf, algorithm));
     }
 
     public static byte[] digestBuff(byte[] buf, String algorithm) {
@@ -92,7 +92,7 @@ public class DigestHelper {
             content = "";
         if (key == null)
             throw new NullPointerException("hmac key is NULL.");
-        return Common.byte2hex(hmac(content.getBytes(encoding),
+        return Common.base16Encode(hmac(content.getBytes(encoding),
                 key.getBytes(encoding), algorithm));
     }
 

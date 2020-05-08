@@ -17,6 +17,7 @@
 package org.coodex.util;
 
 import lombok.SneakyThrows;
+import org.coodex.id.IDGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,9 +30,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
@@ -45,6 +46,8 @@ public class Common {
     public static final String PATH_SEPARATOR = System.getProperty("path.separator");
 
     public static final String FILE_SEPARATOR = System.getProperty("file.separator");
+
+    public static final String USER_DIR = System.getProperty("user.dir");
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 
@@ -64,13 +67,19 @@ public class Common {
 
     private final static String DEFAULT_DELIM = ".-_ /\\";
 
+
     private static final ThreadLocal<SingletonMap<String, DateFormat>> threadLocal = new ThreadLocal<>();
 
     private static final SelectableServiceLoader<Class<?>, StringConvertWithDefaultValue> converterServiceLoader
             = new LazySelectableServiceLoader<Class<?>, StringConvertWithDefaultValue>() {
     };
+    private static final char[] BASE16_CHAR = "0123456789abcdef".toCharArray();
 
     private Common() {
+    }
+
+    private static long i2l(int i) {
+        return i & 0xFFFFFFFFL;
     }
 
     public static boolean isWindows() {
@@ -78,7 +87,7 @@ public class Common {
     }
 
     private static String[] userDir() {
-        return System.getProperty("user.dir").split(isWindows() ? "\\\\" : "/");
+        return USER_DIR.split(isWindows() ? "\\\\" : "/");
     }
 
     public static String toAbsolutePath(String path) {
@@ -133,102 +142,19 @@ public class Common {
         return joiner.toString();
     }
 
+    public static <T> Set<T> arrayToSet(T[] array) {
+        return Arrays.stream(Objects.requireNonNull(array, "array MUST NOT null"))
+                .collect(Collectors.toSet());
+    }
+
     /**
-     * 使用 {@link ResourceScaner} 替代
+     * 作为id时，使用{@link IDGenerator#newId()}替代
+     * <p>
+     * 获取uuid时，使用{@link UUIDHelper#getUUIDString()}
      *
-     * @param processor processor
-     * @param filter    filter
-     * @param paths     paths
+     * @return uuid
      */
     @Deprecated
-    public static void forEach(Processor processor, final ResourceFilter filter, String... paths) {
-        ResourceScaner.newBuilder(processor)
-                .filter(filter)
-                .build()
-                .scan(paths);
-//        try {
-//            final Set<PathPattern> pathPatterns = toPathPatterns(paths);
-//            ResourceFilter resourceFilter = (root, resourceName) -> {
-//                boolean pathOk = false;
-//                for (PathPattern pathPattern : pathPatterns) {
-//                    if (pathPattern.pattern.matcher(resourceName).matches()) {
-//                        pathOk = true;
-//                        break;
-//                    }
-//                }
-//                return pathOk && filter.accept(root, resourceName);
-//            };
-//            for (String path : merge(pathPatterns)) {
-//                path = trim(path, '/');
-//                Enumeration<URL> resourceRoots = Common.class.getClassLoader().getResources(path);
-//                while (resourceRoots.hasMoreElements()) {
-//                    URL url = resourceRoots.nextElement();
-//                    String urlStr = url.toString();
-//                    int indexOfZipMarker = urlStr.indexOf('!');
-//                    String resourceRoot = urlStr.substring(0, urlStr.length() - path.length() - 1);
-//
-//                    // 针对每一个匹配的包进行检索
-//                    if (indexOfZipMarker > 0) {
-//                        // .zip, .jar
-//                        File f = new File(new URI(url.getFile()));
-//                        String fileName = f.getAbsolutePath();
-//
-//                        forEachInZip(resourceRoot, path, processor, resourceFilter, new File(
-//                                fileName.substring(0, fileName.length() - 2 - path.length())
-//                        ));
-//                    } else {
-//                        // 文件夹
-//                        forEachInDir(resourceRoot, path.replace('\\', '/'), processor, resourceFilter, new File(url.toURI()), true);
-//                    }
-//                }
-//            }
-//        } catch (IOException | URISyntaxException e) {
-//            log.warn("resource search failed. {}.", e.getLocalizedMessage(), e);
-//        }
-    }
-
-//    @Deprecated
-//    private static void forEachInZip(String root, String path, Processor processor, ResourceFilter filter, File zipFile) throws IOException {
-//
-//        try (ZipFile zip = new ZipFile(zipFile)) {
-//            log.debug("Scan items in [{}]:{{}}", zipFile.getAbsolutePath(), path);
-//            Enumeration<? extends ZipEntry> entries = zip.entries();
-//            while (entries.hasMoreElements()) {
-//                ZipEntry entry = entries.nextElement();
-//                if (entry.isDirectory()) continue;
-//                String entryName = entry.getName();
-//                // 此包中的检索
-//                if (entryName.startsWith(path) && filter.accept(root, entryName)) {
-//                    processor.process(new URL(root + "/" + entryName), entryName);
-//                }
-//            }
-//        }
-//    }
-//
-//    @Deprecated
-//    private static void forEachInDir(String root, String path,
-//                                     Processor processor, ResourceFilter filter,
-//                                     File dir, boolean header) throws MalformedURLException {
-//        if (header)
-//            log.debug("Scan items in dir[{}]:[{}]", dir.getAbsolutePath(), path);
-//
-//        //noinspection ConstantConditions
-//        for (File f : dir.listFiles()) {
-//            String resourceName = path + '/' + f.getName();
-//            if (f.isDirectory()) {
-//                forEachInDir(root, resourceName, processor, filter, f, false);
-//            } else {
-//                if (filter.accept(root, resourceName)) {
-//                    processor.process(new URL(root + '/' + resourceName), resourceName);
-//                }
-//            }
-//        }
-//    }
-
-    public static <T> Set<T> arrayToSet(T[] array) {
-        return new HashSet<>(Arrays.asList(array));
-    }
-
     public static String getUUIDStr() {
         return UUIDHelper.getUUIDString();
     }
@@ -243,17 +169,22 @@ public class Common {
     }
 
     public static <T> boolean inArray(T el, T[] array) {
-        return findInArray(el, array) >= 0;
+        return indexOf(array, el) >= 0;
     }
 
+    /**
+     * @deprecated {@link #indexOf(Object[], Object)}
+     */
+    @Deprecated
     public static <T> int findInArray(T el, T[] array) {
-        for (int i = 0; i < array.length; i++) {
-            T t = array[i];
-            if (Objects.equals(t, el)) {
-                return i;
-            }
-        }
-        return -1;
+//        for (int i = 0; i < array.length; i++) {
+//            T t = array[i];
+//            if (Objects.equals(t, el)) {
+//                return i;
+//            }
+//        }
+//        return -1;
+        return indexOf(array, el);
     }
 
     public static String nullToStr(String str) {
@@ -281,25 +212,63 @@ public class Common {
         return cast(deserialize(serialize(object)));
     }
 
+    /**
+     * @param max 正整数
+     * @return [0, max)的随机数
+     */
     public static int random(int max) {
+        return (int) random(0L, i2l(max));
+    }
+
+    /**
+     * @param max 非负正数
+     * @return [0, max]的随机数
+     */
+    public static int randomC(int max) {
+        return (int) random(0L, max + 1L);
+    }
+
+    public static int random(int min, int max) {
+        return (int) random(i2l(min), i2l(max));
+    }
+
+    public static int randomC(int min, int max) {
+        return (int) random(i2l(min), max + 1L);
+    }
+
+    public static long random(long min, long max) {
+//        if (min == max) return min;
+//        float _min = Math.min(min, max);
+//        float _max = Math.max(min, max);
+//
+//        return (long) (_min + Math.random() * (_max - _min));
+        return random(min, max, false);
+    }
+
+    public static long random(long max) {
         return random(0, max);
     }
 
-    @SuppressWarnings("RedundantCast")
-    public static int random(int min, int max) {
-//        if (max == Integer.MAX_VALUE)
-//            max = max - 1;
-//        return min + (int) (Math.random() * (max - min + 1));
-        return (int) random((long) min, (long) max);
+    public static long randomC(long max) {
+        return random(0, max, true);
     }
 
+    public static long randomC(long min, long max) {
+        return random(min, max, true);
+    }
 
-    public static long random(long min, long max) {
+    private static long random(long bound1, long bound2, boolean includeMax) {
+        long min = Math.min(bound1, bound2);
+        long max = Math.max(bound1, bound2);
         if (min == max) return min;
-        float _min = Math.min(min, max);
-        float _max = Math.max(min, max);
+        long step = max - min + (includeMax ? 1L : 0L);
+        if (step > 0)
+            return min + (long) (Math.random() * step);
+        // 越界情况，按照正负数的权重算一次随机判定落在哪一边
+        return Math.random() < (Math.abs(min) * 1d / max) ?
+                random(min, 0, includeMax) :
+                random(0, max, includeMax);
 
-        return (long) (_min + Math.random() * (_max - _min));
     }
 
     public static double random(double min, double max) {
@@ -310,7 +279,6 @@ public class Common {
         return _min + Math.random() * (_max - _min);
     }
 
-    @SuppressWarnings("unused")
     public static <K extends Serializable, V extends Serializable> void copyMap(
             Map<K, V> org, Map<K, V> target) {
         for (K key : org.keySet())
@@ -360,35 +328,36 @@ public class Common {
             os.flush();
     }
 
+    /**
+     * @deprecated 使用 {@link Objects#requireNonNull(Object, String)} 替代
+     */
+    @Deprecated
     public static void checkNull(Object o, String msg) {
-        if (o == null) throw new NullPointerException(msg);
+        Objects.requireNonNull(o, msg);
     }
 
     private static <T extends Comparable<T>> T _max(T c1, T c2) {
         return c1.compareTo(c2) >= 0 ? c1 : c2;
     }
 
+    /**
+     * @deprecated 使用 {@link Edge#between(Comparable, Comparable, Comparable)}替代
+     */
+    @Deprecated
     public static <T extends Comparable<T>> boolean between(T t, T bound1, T bound2) {
-        checkNull(t, "t is null");
-        checkNull(bound1, "bound1 is null");
-        checkNull(bound2, "bound2 is null");
-        return t.compareTo(_min(bound1, bound2)) > 0 && t.compareTo(_max(bound1, bound2)) < 0;
+        return Edge.OPEN_OPEN.between(t, bound1, bound2);
     }
-
-//    public static void checkNull(Object o, Supplier<String> supplier) {
-//        if (o == null) throw new NullPointerException(supplier == null ? null : supplier.get());
-//    }
 
     @SafeVarargs
     public static <T extends Comparable<T>> T max(T c1, T c2, T... others) {
-        checkNull(c1, "c1 is null");
-        checkNull(c2, "c2 is null");
+        Objects.requireNonNull(c1, "c1 is null");
+        Objects.requireNonNull(c2, "c2 is null");
         T currentMax = _max(c1, c2);
         if (others != null && others.length > 0) {
             for (int i = 0, len = others.length; i < len; i++) {
 //                int finalI = i;
 //                checkNull(others[i], () -> "c" + (finalI + 3) + " is null");
-                checkNull(others[i], "c" + (i + 3) + " is null");
+                Objects.requireNonNull(others[i], "c" + (i + 3) + " is null");
                 currentMax = _max(currentMax, others[i]);
             }
         }
@@ -399,33 +368,145 @@ public class Common {
         return c1.compareTo(c2) <= 0 ? c1 : c2;
     }
 
+    @Deprecated
     public static String byte2hex(byte[] b) {
-        return byte2hex(b, 0, b.length);
+        return base16Encode(b);
     }
 
+    @Deprecated
     public static String byte2hex(byte[] b, int offset, int length) {
-        return byte2hex(b, offset, length, 0, null);
+        return base16Encode(b, offset, length);
     }
 
-    @SuppressWarnings("unused")
+    @Deprecated
     public static String byte2hex(byte[] b, int col, String split) {
-        return byte2hex(b, 0, b.length, col, split);
+        return base16Encode(b, col, split);
     }
 
+    @Deprecated
     public static String byte2hex(byte[] b, int offset, int length, int col, String split) {
+        return base16Encode(b, offset, length, col, split);
+    }
+
+    /**
+     * @param b 需要编码的字节数组
+     * @return 编码后的字符串
+     */
+    public static String base16Encode(byte[] b) {
+        return base16Encode(b, 0, b.length);
+    }
+
+    /**
+     * @param b      需要编码的字节数组
+     * @param offset 编码字节数组偏移
+     * @param length 编码字节数组长度
+     * @return 编码后的字符串
+     */
+    public static String base16Encode(byte[] b, int offset, int length) {
+        return base16Encode(b, offset, length, Integer.MAX_VALUE, null);
+    }
+
+    /**
+     * @param b     需要编码的字节数组
+     * @param col   每个字节编码后算一列，此参数用来指定编码后每行多少列，行与行之间使用系统变量line.separator来分隔
+     * @param split 列于列之间的分隔字符传串，行首行尾不加
+     * @return 编码后的字符串
+     */
+    public static String base16Encode(byte[] b, int col, String split) {
+        return base16Encode(b, line -> col, split);
+    }
+
+    /**
+     * @param b           需要编码的字节数组
+     * @param colFunction 每个字节编码后算一列，此参数用来指定编码后各行多少列，行与行之间使用系统变量line.separator来分隔
+     * @param split       列于列之间的分隔字符传串，行首行尾不加
+     * @return 编码后的字符串
+     */
+    public static String base16Encode(byte[] b, Function<Integer, Integer> colFunction, String split) {
+        return base16Encode(b, 0, b.length, colFunction, split);
+    }
+
+    /**
+     * @param b      需要编码的字节数组
+     * @param offset 编码字节数组偏移
+     * @param length 编码字节数组长度
+     * @param col    每个字节编码后算一列，此参数用来指定编码后每行多少列，行与行之间使用系统变量line.separator来分隔
+     * @param split  列于列之间的分隔字符传串，行首行尾不加
+     * @return 编码后的字符串
+     */
+    public static String base16Encode(byte[] b, int offset, int length, int col, String split) {
+        return base16Encode(b, offset, length, line -> col, split);
+    }
+
+    private static String encodeByte(byte b) {
+        int temp = b & 0xFF;
+        return new String(new char[]{
+                BASE16_CHAR[(temp >> 4) & 0xF],
+                BASE16_CHAR[temp & 0xF]
+        });
+    }
+
+    /**
+     * @param b           需要编码的字节数组
+     * @param offset      编码字节数组偏移
+     * @param length      编码字节数组长度
+     * @param colFunction 每个字节编码后算一列，此参数用来指定编码后各行多少列，行与行之间使用系统变量line.separator来分隔
+     * @param split       列于列之间的分隔字符传串，行首行尾不加
+     * @return 编码后的字符串
+     */
+    public static String base16Encode(byte[] b, int offset, int length, Function<Integer, Integer> colFunction, String split) {
         StringBuilder builder = new StringBuilder();
-        for (int index = 0, n = offset, l = Math.min(offset + length, b.length); n < l; n++, index++) {
-            if (col > 0 && index > 0 && index % col == 0) {
-                builder.append(LINE_SEPARATOR);
+        boolean blankSplit = split == null || "".equals(split);
+        int line = 0;
+        int index = offset;
+        int remain = length;
+        while (remain > 0) {
+            if (line > 0) builder.append(LINE_SEPARATOR);//非首行则添加行隔符
+            int col = colFunction.apply(line++);// 计算当前行列数
+            int encodeCountForThisLine = Math.min(remain, col);//在剩余字节数和当前行列数中算出本行要编码的字节数
+            remain -= encodeCountForThisLine;// 预减掉本行编码数
+            boolean firstByte = true;
+            while (encodeCountForThisLine > 0) {
+                encodeCountForThisLine--;
+
+                if (!firstByte && !blankSplit) {
+                    builder.append(split);
+                } else {
+                    firstByte = false;
+                }
+                builder.append(encodeByte(b[index++]));
             }
-            int tmp = b[n] & 0xFF;
-            if (tmp < 0x10) {
-                builder.append('0').append(Integer.toHexString(tmp));
-            } else {
-                builder.append(Integer.toHexString(tmp));
-            }
-            if (split != null) {
-                builder.append(split);
+        }
+        return builder.toString();
+//        Byte[] bytes = new Byte[b.length];
+//        Arrays.setAll(bytes, n -> b[n]);
+//        return formatArray(bytes, offset, length, colFunction, split, Common::encodeByte);
+    }
+
+    public static <T> String formatArray(
+            T[] array, int offset, int length,
+            Function<Integer, Integer> colFunction,
+            String split, Function<T, String> encoder) {
+        StringBuilder builder = new StringBuilder();
+        boolean blankSplit = split == null || "".equals(split);
+        int line = 0;
+        int index = offset;
+        int remain = length;
+        while (remain > 0) {
+            if (line > 0) builder.append(LINE_SEPARATOR);//非首行则添加行隔符
+            int col = colFunction.apply(line++);// 计算当前行列数
+            int encodeCountForThisLine = Math.min(remain, col);//在剩余字节数和当前行列数中算出本行要编码的字节数
+            remain -= encodeCountForThisLine;// 预减掉本行编码数
+            boolean firstByte = true;
+            while (encodeCountForThisLine > 0) {
+                encodeCountForThisLine--;
+
+                if (!firstByte && !blankSplit) {
+                    builder.append(split);
+                } else {
+                    firstByte = false;
+                }
+                builder.append(encoder.apply(array[index++]));
             }
         }
         return builder.toString();
@@ -441,12 +522,22 @@ public class Common {
         return -1;
     }
 
-    @SuppressWarnings("unused")
+    @Deprecated
     public static byte[] hex2byte(String hexString) {
-        return hex2byte(hexString, LINE_SEPARATOR + " ");
+        return base16Decode(hexString);
     }
 
+    @Deprecated
     public static byte[] hex2byte(String hexString, String ignoreChars) {
+        return base16Decode(hexString, ignoreChars);
+    }
+
+    @SuppressWarnings("unused")
+    public static byte[] base16Decode(String hexString) {
+        return base16Decode(hexString, LINE_SEPARATOR + " ");
+    }
+
+    public static byte[] base16Decode(String hexString, String ignoreChars) {
         char[] ignore = ignoreChars == null ? new char[0] : ignoreChars.toCharArray();
         int hi = -1, low = -1;
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -519,16 +610,14 @@ public class Common {
     /**
      * 并集
      *
-     * @param sets
-     * @return
+     * @param sets sets
+     * @return 并集
      */
     @SafeVarargs
-    @SuppressWarnings("JavaDoc")
     public static <T> Set<T> join(Collection<T>... sets) {
         return join(new HashSet<>(), sets);
     }
 
-    @SuppressWarnings("unused")
     public static String native2AscII(String str) {
         if (str == null) return null;
         char[] charPoints = str.toCharArray();
@@ -542,8 +631,13 @@ public class Common {
         return strBuf.toString();
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @Deprecated
     public static File getNewFile(String fileName) throws IOException {
+        return newFile(fileName);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static File newFile(String fileName) throws IOException {
         File f = new File(fileName);
         if (!f.getParentFile().exists()) {
             f.getParentFile().mkdirs();
@@ -554,13 +648,12 @@ public class Common {
         return f;
     }
 
-
     @SneakyThrows
     public static URL getResource(String resource, ClassLoader... classLoaders) {
         resource = Common.trim(resource, '/');
 
         URL url;
-        for (String path : ResourceScaner.getExtraResourcePath()) {
+        for (String path : ResourceScanner.getExtraResourcePath()) {
             String filePath = path + FILE_SEPARATOR + resource;
             File file = new File(filePath);
             if (file.exists()) {
@@ -611,11 +704,6 @@ public class Common {
         return -1;
     }
 
-//    @Deprecated
-//    public static File getFile(String fileName) throws IOException {
-//        return getNewFile(fileName);
-//    }
-
     public static String concat(Collection<String> list, String split) {
         if (list == null) return null;
         switch (list.size()) {
@@ -635,6 +723,11 @@ public class Common {
 //                return builder.toString();
         }
     }
+
+//    @Deprecated
+//    public static File getFile(String fileName) throws IOException {
+//        return getNewFile(fileName);
+//    }
 
     public static <T> T to(String str, T value) {
         if (value == null) {
@@ -656,6 +749,14 @@ public class Common {
         return cast(defaultValue.convertTo(str, value, cls));
     }
 
+    public static int toInt(String str, Supplier<Integer> valueSupplier) {
+        try {
+            return parseInt(str);
+        } catch (Throwable th) {
+            return valueSupplier.get();
+        }
+    }
+
 
 //    public static <T> T to(String str, Supplier<T> defaultSupplier) {
 //        if (defaultSupplier == null) {
@@ -669,14 +770,6 @@ public class Common {
 //                )
 //        ), defaultSupplier);
 //    }
-
-    public static int toInt(String str, Supplier<Integer> valueSupplier) {
-        try {
-            return parseInt(str);
-        } catch (Throwable th) {
-            return valueSupplier.get();
-        }
-    }
 
     public static int toInt(String str, int value) {
         try {
@@ -752,7 +845,6 @@ public class Common {
 //                .toArray(new String[0]);
     }
 
-
     private static boolean inArray(char ch, char[] chars) {
         for (char c : chars) {
             if (c == ch) return true;
@@ -778,14 +870,16 @@ public class Common {
         return trim(str, toTrim.toCharArray());
     }
 
+    @Deprecated
     public static boolean sameString(String str1, String str2) {
-        if (str1 == null && str2 == null) return true;
-        if (str1 == null || str2 == null) return false;
-        return str1.equals(str2);
+//        if (str1 == null && str2 == null) return true;
+//        if (str1 == null || str2 == null) return false;
+//        return str1.equals(str2);
+        return Objects.equals(str1, str2);
     }
 
     /**
-     * 参考：http://tools.jb51.net/table/gb2312
+     * https://zh.wikipedia.org/wiki/GB_2312
      *
      * @return 一个随机的中文字符(GB2312的一级文字)
      */
@@ -793,8 +887,8 @@ public class Common {
         // 16-55区(0xB0 - 0xD7, D7最大到F9): 一级汉字
         // 56-87区(0xD8 - 0xF7): 二级汉字
         try {
-            int b1 = Common.random(0xB0, 0xD7);
-            int b2 = Common.random(0xA1, b1 == 0xD7 ? 0xF9 : 0xFE);
+            int b1 = randomC(0xB0, 0xD7);
+            int b2 = randomC(0xA1, b1 == 0xD7 ? 0xF9 : 0xFE);
             return new String(new byte[]{(byte) b1, (byte) b2}, "GB2312").charAt(0);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e.getLocalizedMessage(), e);
@@ -805,6 +899,15 @@ public class Common {
         if (Common.isBlank(s)) throw new IllegalArgumentException("range is blank.");
         return s.charAt(Common.random(s.length()));
     }
+
+//    /**
+//     * https://zh.wikipedia.org/wiki/%E6%B1%89%E5%AD%97%E5%86%85%E7%A0%81%E6%89%A9%E5%B1%95%E8%A7%84%E8%8C%83
+//     *
+//     * @return 一个随机的GBK字符
+//     */
+//    public static char randomGBKChar(){
+//
+//    }
 
     public static <T> T random(T[] range) {
         if (range == null || range.length == 0) throw new IllegalArgumentException("range is blank.");
@@ -1018,14 +1121,12 @@ public class Common {
 
     @SafeVarargs
     public static <T extends Comparable<T>> T min(T c1, T c2, T... others) {
-        checkNull(c1, "c1 is null");
-        checkNull(c2, "c2 is null");
+        Objects.requireNonNull(c1, "c1 is null");
+        Objects.requireNonNull(c2, "c2 is null");
         T currentMin = _min(c1, c2);
         if (others != null && others.length > 0) {
             for (int i = 0, len = others.length; i < len; i++) {
-//                int finalI = i;
-//                checkNull(others[i], () -> "c" + (finalI + 3) + " is null");
-                checkNull(others[i], "c" + (i + 3) + " is null");
+                Objects.requireNonNull(others[i], "c" + (i + 3) + " is null");
                 currentMin = _min(currentMin, others[i]);
             }
         }
@@ -1125,23 +1226,49 @@ public class Common {
         }
     }
 
-    @Deprecated
-    public interface ResourceFilter extends BiFunction<String, String, Boolean> {
-        boolean accept(String root, String resourceName);
 
-        @Override
-        default Boolean apply(String root, String resourceName) {
-            return accept(root, resourceName);
+//    @Deprecated
+//    public interface ResourceFilter extends BiFunction<String, String, Boolean> {
+//        boolean accept(String root, String resourceName);
+//
+//        @Override
+//        default Boolean apply(String root, String resourceName) {
+//            return accept(root, resourceName);
+//        }
+//    }
+//
+//    @Deprecated
+//    public interface Processor extends BiConsumer<URL, String> {
+//        void process(URL url, String resourceName);
+//
+//        @Override
+//        default void accept(URL url, String resourceName) {
+//            process(url, resourceName);
+//        }
+//    }
+
+    //    public static void checkNull(Object o, Supplier<String> supplier) {
+//        if (o == null) throw new NullPointerException(supplier == null ? null : supplier.get());
+//    }
+    public enum Edge {
+        OPEN_OPEN(0, 0),
+        CLOSE_OPEN(-1, 0),
+        OPEN_CLOSE(0, 1),
+        CLOSE_CLOSE(-1, 1);
+
+        private final int left;
+        private final int right;
+
+        Edge(int left, int right) {
+            this.left = left;
+            this.right = right;
         }
-    }
 
-    @Deprecated
-    public interface Processor extends BiConsumer<URL, String> {
-        void process(URL url, String resourceName);
-
-        @Override
-        default void accept(URL url, String resourceName) {
-            process(url, resourceName);
+        public <T extends Comparable<T>> boolean between(T t, T bound1, T bound2) {
+            Objects.requireNonNull(t, "t is null");
+            Objects.requireNonNull(bound1, "bound1 is null");
+            Objects.requireNonNull(bound2, "bound2 is null");
+            return t.compareTo(_min(bound1, bound2)) > left && t.compareTo(_max(bound1, bound2)) < right;
         }
     }
 
@@ -1200,41 +1327,6 @@ public class Common {
             return boolean.class.equals(param) || Boolean.class.equals(param);
         }
     }
-
-//    @Deprecated
-//    private static class PathPattern {
-//        private final Pattern pattern;
-//        private final String path;
-//        private final String originalPath;
-//
-//        public PathPattern(String path) {
-//            this.originalPath = path;
-//            this.pattern = Pattern.compile(
-//                    "^" + Common.trim(path)
-//                            .replaceAll("\\.", "\\\\.")
-//                            .replaceAll("/\\*{2,}/", "(/|/.+/)")
-//                            .replaceAll("\\*{2,}", ".+")// 两个以上*匹配任意字符
-//                            .replaceAll("\\*", "[^/]+")
-//                            + ".*"
-//            );
-//            this.path = pathRoot(path);
-//        }
-//
-//        @Override
-//        public boolean equals(Object o) {
-//            if (this == o) return true;
-//            if (!(o instanceof PathPattern)) return false;
-//
-//            PathPattern that = (PathPattern) o;
-//
-//            return originalPath.equals(that.originalPath);
-//        }
-//
-//        @Override
-//        public int hashCode() {
-//            return originalPath.hashCode();
-//        }
-//    }
 
 
 }

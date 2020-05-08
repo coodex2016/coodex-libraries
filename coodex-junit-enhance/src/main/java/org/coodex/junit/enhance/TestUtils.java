@@ -16,10 +16,7 @@
 
 package org.coodex.junit.enhance;
 
-import org.coodex.util.Clock;
-import org.coodex.util.Common;
-import org.coodex.util.LazySelectableServiceLoader;
-import org.coodex.util.LazyServiceLoader;
+import org.coodex.util.*;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
@@ -31,15 +28,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static org.coodex.util.Common.getUUIDStr;
+import static org.coodex.util.UUIDHelper.getUUIDString;
 
 public class TestUtils {
     public static final Time TIME = new TimeImpl();
     static final ThreadLocal<Map<String, Object>> CONTEXT = new ThreadLocal<>();
     private final static Logger log = LoggerFactory.getLogger(TestUtils.class);
-    private static final String KEY_TIMESTAMP = getUUIDStr();
-    private static final String KEY_NAME = getUUIDStr();
-    private static final LazyServiceLoader<LoggerProvider> LOGGER_PROVIDER_LOADER = new LazyServiceLoader<LoggerProvider>(Slf4jLoggerProvider::new) {
+    private static final String KEY_TIMESTAMP = getUUIDString();
+    private static final String KEY_NAME = getUUIDString();
+    private static final ServiceLoader<LoggerProvider> LOGGER_PROVIDER_LOADER = new LazyServiceLoader<LoggerProvider>(Slf4jLoggerProvider::new) {
     };
     public static final Logger logger = (Logger) Proxy.newProxyInstance(Logger.class.getClassLoader(), new Class<?>[]{Logger.class},
             (proxy, method, args) -> {

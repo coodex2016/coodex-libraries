@@ -33,8 +33,8 @@ public class ProfileBasedTranslateService extends AbstractTranslateService {
             .function(key -> ProfileBasedTranslateService.this.get(key.key, key.locale)).build();
 
     ProfileBasedTranslateService() {
-        ResourceScaner.newBuilder((resource, resourceName) -> mappers.add(
-                new ResourcesMapper(resourceName, resource, Integer.MAX_VALUE - ResourceScaner.getExtraPathIndex())))
+        ResourceScanner.newBuilder((resource, resourceName) -> mappers.add(
+                new ResourcesMapper(resourceName, resource, Integer.MAX_VALUE - ResourceScanner.getExtraPathIndex())))
                 .filter((root, resourceName) -> {
                     String[] allSupported = Profile.allSupportedFileExt();
                     for (String ext : allSupported) {

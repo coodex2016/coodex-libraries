@@ -37,7 +37,7 @@ public class Tracer {
 //            return Common.toBool(System.getProperty("org.coodex.util.Tracer"), false);
         return Config.getValue("org.coodex.util.Tracer", false);
     });
-    private static final String START_TIME_KEY = Common.getUUIDStr();
+    private static final String START_TIME_KEY = UUIDHelper.getUUIDString();
     private Logger logger = log;
     private Supplier<String> nameSupplier = null;
 
@@ -127,10 +127,10 @@ public class Tracer {
                 long used = Clock.currentTimeMillis() - start;
                 if (throwable != null && logger.isErrorEnabled()) {
                     String info = buildTraceInfo(context);
-                    log.error(info + "used {} ms.", used, throwable);
+                    logger.error(info + "used {} ms.", used, throwable);
                 } else if (throwable == null && logger.isInfoEnabled()) {
                     String info = buildTraceInfo(context);
-                    log.info(info + "used {} ms.", used);
+                    logger.info(info + "used {} ms.", used);
                 }
             }
             throw Common.rte(throwable);

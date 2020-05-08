@@ -15,17 +15,21 @@
  */
 package org.coodex.util;
 
+import org.coodex.config.Config;
+
+import java.util.Base64;
 import java.util.UUID;
+
+import static org.coodex.util.Common.base16Encode;
 
 /**
  * @author davidoff
  */
 public class UUIDHelper {
-
-    private static String digits(long val, int digits) {
-        long hi = 1L << (digits * 4);
-        return Long.toHexString(hi | (val & (hi - 1))).substring(1);
-    }
+    private static final Singleton<String> CODE = Singleton.with(() -> Config.getValue("uuid.encoder", "base16"));
+    private static final SelectableServiceLoader<String, Encoder> ENCODER_SERVICE_LOADER
+            = new LazySelectableServiceLoader<String, Encoder>(new Base16Encoder()) {
+    };
 
     public static byte[] getUUIDBytes() {
         UUID uuid = UUID.randomUUID();
@@ -53,17 +57,64 @@ public class UUIDHelper {
     }
 
     public static String getUUIDString() {
-        UUID uuid = UUID.randomUUID();
-        long mostSigBits = uuid.getMostSignificantBits();
-        long leastSigBits = uuid.getLeastSignificantBits();
-        return (digits(mostSigBits >> 32, 8) + digits(mostSigBits >> 16, 4)
-                + digits(mostSigBits, 4) + digits(leastSigBits >> 48, 4) + digits(
-                leastSigBits, 12));
+        return ENCODER_SERVICE_LOADER.select(CODE.get()).encode(getUUIDBytes());
     }
 
-    public static String getUUIDStringWithBase58() {
-        return Base58.encode(getUUIDBytes());
+    public interface Encoder extends SelectableService<String> {
+        String encode(byte[] bytes);
     }
-    
+
+    public static class Base16Encoder implements Encoder {
+
+        @Override
+        public String encode(byte[] bytes) {
+            return base16Encode(bytes);
+        }
+
+        @Override
+        public boolean accept(String param) {
+            return true;
+        }
+    }
+
+    public static class Base64Encoder implements Encoder {
+
+        @Override
+        public String encode(byte[] bytes) {
+            return Base64.getEncoder().encodeToString(bytes);
+        }
+
+        @Override
+        public boolean accept(String param) {
+            return "base64".equalsIgnoreCase(param);
+        }
+
+    }
+
+    public static class Base64UrlSafeEncoder implements Encoder {
+
+        @Override
+        public String encode(byte[] bytes) {
+            return Base64.getUrlEncoder().encodeToString(bytes);
+        }
+
+        @Override
+        public boolean accept(String param) {
+            return "base64UrlSafe".equalsIgnoreCase(param);
+        }
+    }
+
+    public static class Base58Encoder implements Encoder {
+
+        @Override
+        public String encode(byte[] bytes) {
+            return Base58.encode(bytes);
+        }
+
+        @Override
+        public boolean accept(String param) {
+            return "base58".equalsIgnoreCase(param);
+        }
+    }
 
 }

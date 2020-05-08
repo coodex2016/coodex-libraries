@@ -303,7 +303,7 @@ public class ReflectHelper {
 
     public static void foreachClass(final Processor processor, final ClassNameFilter filter, String... packages) {
         if (processor == null) return;
-        ResourceScaner.newBuilder((resource, resourceName) -> {
+        ResourceScanner.newBuilder((resource, resourceName) -> {
             String className = resourceToClassName(resourceName);
             try {
                 processor.process(Class.forName(className));

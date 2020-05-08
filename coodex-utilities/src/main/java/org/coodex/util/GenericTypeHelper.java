@@ -54,15 +54,6 @@ public class GenericTypeHelper {
         return typeInfos.get(context).find(t);
     }
 
-//    @Deprecated
-//    public static Type solve(TypeVariable t, Object context) {
-//        if (context instanceof Type) {
-//            return solveFromType(t, (Type) context);
-//        } else {
-//            return solveFromInstance(t, context);
-//        }
-//    }
-
     public static Type toReference(Type t, Type context) {
         return t instanceof TypeVariable ?
                 solveFromType((TypeVariable<?>) t, context) :

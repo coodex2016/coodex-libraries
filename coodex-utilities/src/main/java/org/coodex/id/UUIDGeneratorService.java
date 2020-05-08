@@ -16,11 +16,11 @@
 
 package org.coodex.id;
 
-import org.coodex.util.Common;
+import org.coodex.util.UUIDHelper;
 
 public class UUIDGeneratorService implements IDGeneratorService {
     @Override
     public String newId() {
-        return Common.getUUIDStr();
+        return UUIDHelper.getUUIDString();
     }
 }

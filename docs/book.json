@@ -17,7 +17,7 @@
   },
   "pluginsConfig": {
     "tbfed-pagefooter": {
-      "copyright":"Copyright &copy coodex.org 2020",
+      "copyright":"&copy coodex.org 2014-2020",
       "modify_label": "",
       "modify_format": "YYYY-MM-DD HH:mm:ss"
     }

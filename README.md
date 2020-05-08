@@ -2,9 +2,19 @@
 
 coodex的一些通用库，从concrete项目中分离成独立项目
 
-
-
 ## change log
+
+### 2020-05-08
+
+- 缺陷修复：spring boot maven plugin下搜索资源失败的歪问题
+- TODO: 优化ResourceScanner的私有方法
+
+### 2020-05-07
+
+- 作废Common.byte2hex系列接口，使用base16Encode系列替代，Common.base16Encode支持按行指定列数
+- Common.random系列接口定义为左闭右开，新增Common.randomC系列接口，定义为左闭右闭
+- UUIDHelper增加Config配置项`uuid.encoder`，默认`base16`，指使用哪种编码方式对uuid进行编码，已支持`base16`/`bse58`/`base64`/`base64UrlSafe`，可自行实现`org.coodex.util.UUIDHelper.Encoder`放到SPI中
+
 
 ### 2020-05-06
 
@@ -28,7 +38,6 @@ coodex的一些通用库，从concrete项目中分离成独立项目
   - 提供基于`FreeMarker`的实现，需要引入`coodex-render-freemarker`包
   - `org.coodex.util.Renderer`对外统一提供渲染接口
   - `org.coodex.util.I18N`增加`render`接口，可基于I18N翻译后的内容进行渲染 
-  
     
 ### 2020-04-07
 

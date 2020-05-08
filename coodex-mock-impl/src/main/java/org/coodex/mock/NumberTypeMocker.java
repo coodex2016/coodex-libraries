@@ -254,7 +254,7 @@ public class NumberTypeMocker extends AbstractTypeMocker<Mock.Number> {
 
     public static Object mock(Type targetType, String range, int digits) {
         Class<?> c = getClassFromType(targetType);
-        int index = Common.findInArray(c, SUPPORTED);
+        int index = Common.indexOf(SUPPORTED, c);
 
         return round(index, getAlternative(range, SUPPORTED[index]).mock(), digits);
     }

@@ -41,7 +41,7 @@ public class IpAddressTypeMocker extends AbstractTypeMocker<IpAddress> {
     }
 
     private Object to(Class<?> c, int[] ip) {
-        switch (Common.findInArray(c, getSupportedClasses())) {
+        switch (Common.indexOf(getSupportedClasses(), c)) {
 //            case 0: //String
 //                char s = ip.length >= 6 ? ':' : '.';
 //                boolean v6 = ip.length == 16;

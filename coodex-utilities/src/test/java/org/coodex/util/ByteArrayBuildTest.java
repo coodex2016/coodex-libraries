@@ -25,14 +25,14 @@ public class ByteArrayBuildTest {
     public void test(){
         ByteArrayBuilder byteArrayBuilder;
         byteArrayBuilder = new ByteArrayBuilder(ByteArrayBuilder.Endianness.BIG_ENDIAN).append(0xABCDl);
-        Assert.assertEquals("000000000000ABCD", Common.byte2hex(byteArrayBuilder.build()));
+        Assert.assertEquals("000000000000ABCD", Common.base16Encode(byteArrayBuilder.build()));
 
         byteArrayBuilder = new ByteArrayBuilder().append("1234567890").append(CRC.Algorithm.CRC16_MODBUS);
-        Assert.assertEquals(Common.byte2hex("1234567890".getBytes()) + "0AC2",
-                Common.byte2hex(byteArrayBuilder.build()));
+        Assert.assertEquals(Common.base16Encode("1234567890".getBytes()) + "0AC2",
+                Common.base16Encode(byteArrayBuilder.build()));
 
         byteArrayBuilder = new ByteArrayBuilder().append((short) 0xABCD);
-        Assert.assertEquals("CDAB", Common.byte2hex(byteArrayBuilder.build()));
+        Assert.assertEquals("CDAB", Common.base16Encode(byteArrayBuilder.build()));
 
     }
 }
