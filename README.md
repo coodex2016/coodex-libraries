@@ -7,7 +7,7 @@ coodex的一些通用库，从concrete项目中分离成独立项目
 ### 2020-05-08
 
 - 缺陷修复：spring boot maven plugin下搜索资源失败的歪问题
-- TODO: 优化ResourceScanner的私有方法
+- 优化ResourceScanner的私有方法
 
 ### 2020-05-07
 

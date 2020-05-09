@@ -35,7 +35,7 @@ public class ProfileBasedTranslateService extends AbstractTranslateService {
     ProfileBasedTranslateService() {
         ResourceScanner.newBuilder((resource, resourceName) -> mappers.add(
                 new ResourcesMapper(resourceName, resource, Integer.MAX_VALUE - ResourceScanner.getExtraPathIndex())))
-                .filter((root, resourceName) -> {
+                .filter(resourceName -> {
                     String[] allSupported = Profile.allSupportedFileExt();
                     for (String ext : allSupported) {
                         if (resourceName.endsWith(ext)) {

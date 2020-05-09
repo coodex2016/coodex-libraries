@@ -310,7 +310,7 @@ public class ReflectHelper {
             } catch (ClassNotFoundException e) {
                 log.warn("load class fail. {}, {}", className, e.getLocalizedMessage());
             }
-        }).filter((root, resourceName) -> {
+        }).filter(resourceName -> {
             String className = resourceToClassName(resourceName);
             return className != null && filter.accept(className);
         }).build().scan(packageToPath(packages));

@@ -16,20 +16,17 @@
 
 package org.coodex.util;
 
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -41,20 +38,22 @@ import static org.coodex.util.Common.toAbsolutePath;
  * <p>
  * 参数<code>coodex.resource.path</code>用来指定扩展的资源路径
  */
-@Slf4j
 public class ResourceScanner {
     private static final ThreadLocal<Integer> EXTRA_PATH_INDEX = new ThreadLocal<>();
+
+    private final static Logger log = LoggerFactory.getLogger(ResourceScanner.class);
+
     public static String KEY_RESOURCE_PATH_EXT = "coodex.resource.path";
     private final BiConsumer<URL, String> processor;
-    private final BiFunction<String, String, Boolean> filter;
+    private final Function<String, Boolean> filter;
     private final boolean extraPath;
 
     private ResourceScanner(
             BiConsumer<URL, String> processor,
-            BiFunction<String, String, Boolean> filter,
+            Function<String, Boolean> filter,
             boolean extraPath) {
         this.processor = processor;
-        this.filter = filter == null ? (t, u) -> true : filter;
+        this.filter = filter == null ? s -> true : filter;
         this.extraPath = extraPath;
     }
 
@@ -131,8 +130,10 @@ public class ResourceScanner {
 
     public void scan(String... paths) {
         try {
+            // 所有的资源根patterns，用来进行初步匹配，减少匹配次数
             final Set<PathPattern> pathPatterns = toPathPatterns(paths);
-            BiFunction<String, String, Boolean> resourceFilter = (root, resourceName) -> {
+
+            Function<String, Boolean> resourceFilter = resourceName -> {
                 boolean pathOk = false;
                 for (PathPattern pathPattern : pathPatterns) {
                     if (pathPattern.pattern.matcher(resourceName).matches()) {
@@ -140,41 +141,74 @@ public class ResourceScanner {
                         break;
                     }
                 }
-                return pathOk && filter.apply(root, resourceName);
+                return pathOk && filter.apply(resourceName);
             };
+            // 所有paths Pattern的共性根组，例如a/**/x、a/b/c/d会合并成a
             Collection<String> merged = merge(pathPatterns);
 
+            // 扩展资源路径中检索资源
             if (extraPath) {
                 scanInExtraPath(resourceFilter, merged);
             }
+
+            // 在共性根里找资源
             for (String path : merged) {
-                path = Common.trim(path, '/');
+                path = Common.trim(path.replace('\\', '/'), '/');
+                // 获取所有的当前根resource，并根据根resource所在位置进行遍历
                 Enumeration<URL> resourceRoots = getClass().getClassLoader().getResources(path);
+
                 while (resourceRoots.hasMoreElements()) {
                     URL url = resourceRoots.nextElement();
-                    String urlStr = url.toString();
+                    String urlStr = url.toString();// 共性根资源的绝对路径
+                    URL baseUrl = new URL( // 把path去掉
+                            urlStr.substring(0, urlStr.length() - path.length())
+                    );
 
-                    int indexOfZipMarker = urlStr.lastIndexOf('!');
-                    String resourceRoot = urlStr.substring(0, urlStr.length() - path.length() - 1);
-
-
-                    // 针对每一个匹配的包进行检索
-                    if (indexOfZipMarker > 0) {
-                        // .zip, .jar
-                        String zipFile = urlStr.indexOf('!') != indexOfZipMarker
-                                ? urlStr.substring(0, indexOfZipMarker) // jar文件
-                                : urlStr.substring(4, indexOfZipMarker); // jar文件中的jar entry
-                        String ext = zipFile.substring(zipFile.length() - 4);
-                        String entryPath = "";
-                        if (!".jar".equalsIgnoreCase(ext) && !".zip".equalsIgnoreCase(ext)) {
-                            int i = zipFile.lastIndexOf('!');
-                            entryPath = zipFile.substring(i + 1);
-                            zipFile = zipFile.substring(4, i);
-                        }
-                        scanInZip(resourceRoot, path, resourceFilter, new URL(zipFile), entryPath);
+                    log.debug("scan items in {}", url);
+                    // 判定是否是文件系统
+                    if ("file".equalsIgnoreCase(url.getProtocol())) {
+                        scanInDir(baseUrl, resourceFilter, new File(url.toURI()), path);
                     } else {
-                        // class path文件夹
-                        scanInDir(resourceRoot, path.replace('\\', '/'), resourceFilter, new File(url.toURI()), true);
+
+                        // jar:file:/jarFilePath.jar!/BOOT-INF/classes!/
+                        // jar:file:/jarFilePath.jar!/jarEntry.jar!/
+                        // 单一的
+                        // jar:file:/jarFilePath.jar!/
+                        String[] nodes = urlStr.split("!/");
+                        if (nodes.length == 2) {//普通jar包模式
+                            scanInZip(
+                                    baseUrl,
+                                    new URL(nodes[0].substring(url.getProtocol().length() + 1)),
+                                    "",
+                                    resourceFilter);
+                        } else {
+
+                            //看倒数第二个是不是.jar或者.zip
+                            String forTest = nodes[nodes.length - 2];
+                            forTest = forTest.substring(forTest.length() - 4);
+                            String pathInJar = "";
+                            int lastJarNode;
+                            if (!".jar".equalsIgnoreCase(forTest) && !".zip".equalsIgnoreCase(forTest)) {
+                                pathInJar = nodes[nodes.length - 2] + "/";
+                                lastJarNode = nodes.length - 3;
+                            } else {
+                                lastJarNode = nodes.length - 2;
+                            }
+
+                            // 构建url
+                            String zipItemUrl;
+                            if (lastJarNode == 0) {
+                                zipItemUrl = nodes[0].substring(url.getProtocol().length() + 1);
+                            } else {
+                                StringJoiner joiner = new StringJoiner("!/");
+                                for (int i = 0; i <= lastJarNode; i++) {
+                                    joiner.add(nodes[i]);
+                                }
+                                zipItemUrl = joiner.toString();
+                            }
+                            scanInZip(baseUrl, new URL(zipItemUrl), pathInJar, resourceFilter);
+
+                        }
                     }
                 }
             }
@@ -183,7 +217,52 @@ public class ResourceScanner {
         }
     }
 
-    private void scanInExtraPath(BiFunction<String, String, Boolean> resourceFilter,
+    private void scanInZip(
+            URL baseUrl,
+            URL zip,
+            String context,
+            Function<String, Boolean> resourceFilter) throws IOException {
+
+        try (ZipInputStream zipInputStream = new ZipInputStream(zip.openStream())) {
+            ZipEntry zipEntry;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                String entryName = zipEntry.getName();
+                if (zipEntry.isDirectory() || !entryName.startsWith(context)) continue;
+                String resourceName = entryName.substring(context.length());
+
+                if (resourceFilter.apply(resourceName))
+                    try {
+                        processor.accept(new URL(baseUrl, resourceName), resourceName);
+                    } catch (Throwable th) {
+                        log.warn("resource process failed: {}, {}", baseUrl, resourceName, th);
+                    }
+            }
+        }
+    }
+
+    private void scanInDir(
+            URL baseURL,
+            Function<String, Boolean> resourceFilter,
+            File searchDir,
+            String contextPath) {
+        File[] list = searchDir.listFiles();
+        if (list == null || list.length == 0) return;
+        for (File f : list) {
+            if (f.isDirectory()) {
+                scanInDir(baseURL, resourceFilter, f, contextPath == null ? f.getName() : (contextPath + "/" + f.getName()));
+            } else {
+                String resourceName = contextPath == null ? f.getName() : (contextPath + "/" + f.getName());
+                if (resourceFilter.apply(resourceName))
+                    try {
+                        processor.accept(new URL(baseURL, resourceName), resourceName);
+                    } catch (Throwable th) {
+                        log.warn("resource process failed: {}, {},{}", baseURL, contextPath, resourceName, th);
+                    }
+            }
+        }
+    }
+
+    private void scanInExtraPath(Function<String, Boolean> resourceFilter,
                                  Collection<String> merged) {
         AtomicInteger atomicInteger = new AtomicInteger(0);
         getExtraResourcePath().forEach(root -> {
@@ -191,9 +270,15 @@ public class ResourceScanner {
             try {
                 merged.forEach(path -> {
                     try {
-                        path = Common.trim(path, '/').replace('\\', '/');
-                        File resourceRoot = new File(root + "/" + path);
-                        scanInDir("file:/" + root, path, resourceFilter, resourceRoot, true);
+                        path = Common.trim(path.replace('\\', '/'), '/');
+                        URL resourceRoot = new File(root).toURI().toURL();
+                        log.debug("Scan items in coodex.resource.path: [{}]", resourceRoot.toString());
+                        scanInDir(
+                                resourceRoot,
+                                resourceFilter,
+                                new File((Common.isBlank(path) ? resourceRoot : new URL(resourceRoot, path)).toURI()),
+                                path
+                        );
                     } catch (Throwable th) {
                         log.warn("load from {} failed: {}", root, th.getLocalizedMessage(), th);
                     }
@@ -205,49 +290,49 @@ public class ResourceScanner {
 
     }
 
-    private void scanInZip(String root,
-                           String path,
-                           BiFunction<String, String, Boolean> filter,
-                           URL zipFile,
-                           String entryPath) throws IOException {
-        log.debug("Scan items in [{}]: {{}}", zipFile.toString(), path);
-        try (ZipInputStream zip = new ZipInputStream(zipFile.openStream())) {
-            ZipEntry entry;
-            String entryContext = Common.isBlank(entryPath) ? "" : entryPath.substring(1);
+//    private void scanInZip(String root,
+//                           String path,
+//                           Function<String, Boolean> filter,
+//                           URL zipFile,
+//                           String entryPath) throws IOException {
+//        log.debug("Scan items in [{}]: {{}}", zipFile.toString(), path);
+//        try (ZipInputStream zip = new ZipInputStream(zipFile.openStream())) {
+//            ZipEntry entry;
+//            String entryContext = Common.isBlank(entryPath) ? "" : entryPath.substring(1);
+//
+//            while ((entry = zip.getNextEntry()) != null) {
+//                if (entry.isDirectory()) continue;
+//                String entryName = entry.getName();
+//                if (!Common.isBlank(entryContext) && !entryName.startsWith(entryContext)) continue;
+//                // 此包中的检索
+//                String resourceName = Common.isBlank(entryContext) ? entryName : entryName.substring(entryContext.length() + 1);
+//                if (resourceName.startsWith(path) && filter.apply(resourceName)) {
+//                    processor.accept(new URL(root + "/" + entryName), resourceName);
+//                }
+//            }
+//        }
+//    }
 
-            while ((entry = zip.getNextEntry()) != null) {
-                if (entry.isDirectory()) continue;
-                String entryName = entry.getName();
-                if (!Common.isBlank(entryContext) && !entryName.startsWith(entryContext)) continue;
-                // 此包中的检索
-                String resourceName = Common.isBlank(entryContext) ? entryName: entryName.substring(entryContext.length() + 1);
-                if (resourceName.startsWith(path) && filter.apply(root, resourceName)) {
-                    processor.accept(new URL(root + "/" + entryName), resourceName);
-                }
-            }
-        }
-    }
-
-    private void scanInDir(String root,
-                           String path,
-                           BiFunction<String, String, Boolean> filter,
-                           File dir,
-                           boolean header) throws MalformedURLException {
-        if (header)
-            log.debug("Scan items in dir[{}]:[{}]", dir.getAbsolutePath(), path);
-        if (dir.isDirectory() && dir.exists()) {
-            for (File f : Optional.ofNullable(dir.listFiles()).orElse(new File[0])) {
-                String resourceName = path + '/' + f.getName();
-                if (f.isDirectory()) {
-                    scanInDir(root, resourceName, filter, f, false);
-                } else {
-                    if (filter.apply(root, resourceName)) {
-                        processor.accept(new URL(root + '/' + resourceName), resourceName);
-                    }
-                }
-            }
-        }
-    }
+//    private void scanInDir(String root,
+//                           String path,
+//                           Function<String, Boolean> filter,
+//                           File dir,
+//                           boolean header) throws MalformedURLException {
+//        if (header)
+//            log.debug("Scan items in dir[{}]:[{}]", dir.getAbsolutePath(), path);
+//        if (dir.isDirectory() && dir.exists()) {
+//            for (File f : Optional.ofNullable(dir.listFiles()).orElse(new File[0])) {
+//                String resourceName = path + '/' + f.getName();
+//                if (f.isDirectory()) {
+//                    scanInDir(root, resourceName, filter, f, false);
+//                } else {
+//                    if (filter.apply(resourceName)) {
+//                        processor.accept(new URL(root + '/' + resourceName), resourceName);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private static class PathPattern {
         private final Pattern pattern;
@@ -300,20 +385,36 @@ public class ResourceScanner {
         }
     }
 
-    @Accessors(fluent = true)
-    @Setter
     public static class Builder {
         private final BiConsumer<URL, String> processor;
-        private BiFunction<String, String, Boolean> filter;
+        private Function<String, Boolean> filter;
         private boolean extraPath = false;
 
-        private Builder(@NonNull BiConsumer<URL, String> processor) {
-            this.processor = processor;
+        private Builder(BiConsumer<URL, String> processor) {
+            this.processor = Objects.requireNonNull(processor);
+        }
+
+        public Builder extraPath(boolean extraPath) {
+            this.extraPath = extraPath;
+            return this;
+        }
+
+        public Builder filter(Function<String, Boolean> filter) {
+            this.filter = filter;
+            return this;
         }
 
         public ResourceScanner build() {
             return new ResourceScanner(processor, filter, extraPath);
         }
     }
+
+//    public static void main(String[] args) throws IOException {
+//
+//        Enumeration<URL> urlEnumeration = ResourceScanner.class.getClassLoader().getResources(null);
+//        while(urlEnumeration.hasMoreElements()){
+//            System.out.println(urlEnumeration.nextElement());
+//        }
+//    }
 
 }
