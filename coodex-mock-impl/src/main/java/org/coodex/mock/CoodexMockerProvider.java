@@ -102,7 +102,7 @@ public class CoodexMockerProvider implements MockerProvider {
      * 所有的TypeMocker实例，使用单例缓存
      */
     private static Singleton<Collection<TypeMocker<Annotation>>> TYPE_MOCKERS = Singleton.with(
-            () -> new ServiceLoaderImpl<TypeMocker<Annotation>>() {
+            () -> new LazyServiceLoader<TypeMocker<Annotation>>() {
             }.getAll().values()
     );
     private static Object NOT_COLLECTION = new Object();

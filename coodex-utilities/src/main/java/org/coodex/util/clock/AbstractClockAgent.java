@@ -16,15 +16,17 @@
 
 package org.coodex.util.clock;
 
-import lombok.extern.slf4j.Slf4j;
+
 import org.coodex.util.Common;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
 public abstract class AbstractClockAgent implements ClockAgent {
 
+    private final static Logger log = LoggerFactory.getLogger(AbstractClockAgent.class);
 
     private final Float magnification;
     private final long baseLine;

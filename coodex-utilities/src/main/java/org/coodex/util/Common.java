@@ -16,13 +16,13 @@
 
 package org.coodex.util;
 
-import lombok.SneakyThrows;
 import org.coodex.id.IDGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -648,7 +648,6 @@ public class Common {
         return f;
     }
 
-    @SneakyThrows
     public static URL getResource(String resource, ClassLoader... classLoaders) {
         resource = Common.trim(resource, '/');
 
@@ -657,7 +656,10 @@ public class Common {
             String filePath = path + FILE_SEPARATOR + resource;
             File file = new File(filePath);
             if (file.exists()) {
-                return new URL(filePath);
+                try {
+                    return new URL(filePath);
+                } catch (MalformedURLException ignore) {
+                }
             }
         }
 

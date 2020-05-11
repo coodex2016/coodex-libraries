@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 coodex.org (jujus.shen@126.com)
+ * Copyright (c) 2020 coodex.org (jujus.shen@126.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package org.coodex.util;
+package test.org.coodex.util;
 
-/**
- * Created by davidoff shen on 2017-05-11.
- */
-@Deprecated
-public interface StringMap {
+import org.coodex.util.Renderer;
 
-    String getString(String key);
+import java.util.Date;
 
-    String getString(String key, String defaultValue);
+public class RendererTest {
+
+    public static void main(String[] args) {
+        System.out.println(Renderer.render(
+                "您好，{0}。今天是{1,date,yyyy-MM-dd}，当前时间{1,time,HH:mm:ss}，您的服务号是{2,number,000}。祝您生活愉快。",
+                "Davidoff", new Date(), 3));
+    }
+
 }

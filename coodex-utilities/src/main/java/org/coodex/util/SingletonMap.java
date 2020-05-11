@@ -16,68 +16,107 @@
 
 package org.coodex.util;
 
-import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
 import org.coodex.concurrent.Debouncer;
 import org.coodex.concurrent.ExecutorsHelper;
+import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@Slf4j
-@Builder
 public class SingletonMap<K, V> {
 
     private static final Singleton<ScheduledExecutorService> DEFAULT_SCHEDULED_EXECUTOR_SERVICE
             = Singleton.with(() -> ExecutorsHelper.newSingleThreadScheduledExecutor("singletonMap-DEFAULT"));
 
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(SingletonMap.class);
+
     private final Map<K, Value<K, V>> map;
 
     private final Function<K, V> function;
     private final K nullKey;
-    @Builder.Default
-    private boolean activeOnGet = false;
-    @Builder.Default
-    private long maxAge = 0;
-    @Builder.Default
-    private Supplier<Map<K, Value<K, V>>> mapSupplier = ConcurrentHashMap::new;
+    private final long maxAge;
+    private final BiConsumer<K, V> deathListener;
+    private final boolean activeOnGet;
+    private final ScheduledExecutorService scheduledExecutorService;
 
-    private ScheduledExecutorService scheduledExecutorService;
-
-    @SuppressWarnings("unused")
-    private SingletonMap(Map<K, Value<K, V>> map, Function<K, V> function,
+    private SingletonMap(Function<K, V> function,
                          K nullKey, boolean activeOnGet,
-                         long maxAge, Supplier<Map<K, Value<K, V>>> mapSupplier,
+                         long maxAge,
+                         BiConsumer<K, V> deathListener,
+                         Supplier<Map<K, Value<K, V>>> mapSupplier,
                          ScheduledExecutorService scheduledExecutorService) {
         this.function = function;
         this.nullKey = nullKey;
         this.maxAge = Math.max(0, maxAge);
-        this.mapSupplier = mapSupplier == null ? ConcurrentHashMap::new : mapSupplier;
-        this.map = map == null ? this.mapSupplier.get() : map;
-        if (this.maxAge > 0) {
-            this.activeOnGet = activeOnGet;
-            this.scheduledExecutorService = scheduledExecutorService == null ? DEFAULT_SCHEDULED_EXECUTOR_SERVICE.get() : scheduledExecutorService;
-        }
+        this.map = mapSupplier == null ? new ConcurrentHashMap<>() : mapSupplier.get();
+        this.deathListener = deathListener;
+        this.activeOnGet = activeOnGet;
+        this.scheduledExecutorService = scheduledExecutorService;
+    }
+
+    public static <K, V> SingletonMapBuilder<K, V> builder() {
+        return new SingletonMapBuilder<>();
+    }
+
+    private ScheduledExecutorService getScheduledExecutorService() {
+        return scheduledExecutorService == null ? DEFAULT_SCHEDULED_EXECUTOR_SERVICE.get() : scheduledExecutorService;
     }
 
     public boolean containsKey(Object key) {
         return map.containsKey(key == null ? nullKey : key);
     }
 
+
     public V get(K key, Supplier<V> supplier) {
-        if (supplier == null) throw new NullPointerException("supplier is null");
-        return get(key, (k) -> supplier.get());
+        return get(key, supplier, maxAge);
+    }
+
+    public V get(K key, Supplier<V> supplier, long maxAge) {
+        return get(key, supplier, maxAge, deathListener);
+    }
+
+    public V get(K key, Supplier<V> supplier, BiConsumer<K, V> deathListener) {
+        return get(key, supplier, maxAge, deathListener);
+    }
+
+    public V get(K key, Supplier<V> supplier, long maxAge, BiConsumer<K, V> deathListener) {
+        return get(key, (k) -> Objects.requireNonNull(supplier, "supplier is null").get(), maxAge, deathListener);
     }
 
     public V get(final K key) {
-        return get(key, function);
+        return get(key, Objects.requireNonNull(function, "function is null"));
+    }
+
+    public V get(final K key, long maxAge) {
+        return get(key, Objects.requireNonNull(function, "function is null"), maxAge);
+    }
+
+    public V get(final K key, BiConsumer<K, V> deathListener) {
+        return get(key, Objects.requireNonNull(function, "function is null"), deathListener);
+    }
+
+    public V get(final K key, long maxAge, BiConsumer<K, V> deathListener) {
+        return get(key, Objects.requireNonNull(function, "function is null"), maxAge, deathListener);
     }
 
     public V get(final K key, Function<K, V> function) {
+        return get(key, function, maxAge);
+    }
+
+    public V get(final K key, Function<K, V> function, long maxAge) {
+        return get(key, function, maxAge, null);
+    }
+
+    public V get(final K key, Function<K, V> function, BiConsumer<K, V> deathListener) {
+        return get(key, function, maxAge, deathListener);
+    }
+
+    public V get(final K key, Function<K, V> function, long maxAge, BiConsumer<K, V> deathListener) {
         if (function == null) throw new NullPointerException("function is null.");
         final K finalKey = key == null ? nullKey : key;
         if (!map.containsKey(finalKey)) {
@@ -89,15 +128,25 @@ public class SingletonMap<K, V> {
                     if (maxAge > 0) {
                         value.debouncer = new Debouncer<>(k -> {
                             log.debug("{} die.", k);
-                            map.remove(k);
-                        }, maxAge, scheduledExecutorService);
+                            Value<K, V> v = map.remove(k);
+                            BiConsumer<K, V> listener = deathListener == null ? this.deathListener : deathListener;
+                            if (listener != null) {
+                                try {
+                                    listener.accept(k, v.value);
+                                } catch (Throwable th) {
+                                    log.warn("listener process failed: {}", listener, th);
+                                }
+                            }
+
+                        }, maxAge, getScheduledExecutorService());
+                        value.debouncer.call(finalKey);
                     }
                     map.put(finalKey, value);
                 }
             }
         }
         Value<K, V> value = map.get(finalKey);
-        if (activeOnGet) {
+        if (activeOnGet && value.debouncer != null) {
             value.debouncer.call(finalKey);
             log.debug("{} active.", finalKey);
         }
@@ -187,12 +236,64 @@ public class SingletonMap<K, V> {
 //
 //        public SingletonMap<K, V> buildMap() {
 //            return new SingletonMap<>(this);
-//        }
 //    }
+//        }
 
-    static class Value<K, V> {
+    public static class Value<K, V> {
         private Debouncer<K> debouncer;
         private V value;
     }
 
+    public static class SingletonMapBuilder<K, V> {
+        private Function<K, V> function;
+        private K nullKey;
+        private boolean activeOnGet;
+        private long maxAge;
+        private BiConsumer<K, V> deathListener;
+        private Supplier<Map<K, Value<K, V>>> mapSupplier;
+        private ScheduledExecutorService scheduledExecutorService;
+
+        SingletonMapBuilder() {
+        }
+
+        public SingletonMapBuilder<K, V> function(Function<K, V> function) {
+            this.function = function;
+            return this;
+        }
+
+        public SingletonMapBuilder<K, V> nullKey(K nullKey) {
+            this.nullKey = nullKey;
+            return this;
+        }
+
+        public SingletonMapBuilder<K, V> activeOnGet(boolean activeOnGet) {
+            this.activeOnGet = activeOnGet;
+            return this;
+        }
+
+        public SingletonMapBuilder<K, V> maxAge(long maxAge) {
+            this.maxAge = maxAge;
+            return this;
+        }
+
+        public SingletonMapBuilder<K, V> deathListener(BiConsumer<K, V> deathListener) {
+            this.deathListener = deathListener;
+            return this;
+        }
+
+        public SingletonMapBuilder<K, V> mapSupplier(Supplier<Map<K, Value<K, V>>> mapSupplier) {
+            this.mapSupplier = mapSupplier;
+            return this;
+        }
+
+        public SingletonMapBuilder<K, V> scheduledExecutorService(ScheduledExecutorService scheduledExecutorService) {
+            this.scheduledExecutorService = scheduledExecutorService;
+            return this;
+        }
+
+        public SingletonMap<K, V> build() {
+            return new SingletonMap<>(function, nullKey, activeOnGet, maxAge, deathListener, mapSupplier, scheduledExecutorService);
+        }
+
+    }
 }

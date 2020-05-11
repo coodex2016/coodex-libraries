@@ -25,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unused")
 public class Throttler<T> extends AbstractCoalition<T> {
+    private final boolean asyncAlways;
     private ScheduledFuture<?> prevFuture = null;
     private long prevTime = 0;
-    private final boolean asyncAlways;
 
     public Throttler(Callback<T> c, long interval, boolean asyncAlways) {
         super(c, interval);
@@ -39,33 +39,13 @@ public class Throttler<T> extends AbstractCoalition<T> {
         this.asyncAlways = asyncAlways;
     }
 
-    @SuppressWarnings("unused")
     public Throttler(Callback<T> c, long interval, ScheduledExecutorService scheduledExecutorService) {
         this(c, interval, false, scheduledExecutorService);
     }
 
-    @SuppressWarnings("unused")
     public Throttler(Callback<T> c, int interval) {
         this(c, interval, false);
     }
-
-//    public static void main(String[] args) throws InterruptedException {
-//        Throttler<String> throttler = new Throttler<String>(new Coalition.Callback<String>() {
-//            @Override
-//            public void call(String arg) {
-//                System.out.println(arg);
-//            }
-//        }, 200);
-//
-//        for (int i = 0; i < 410; i++) {
-//            Thread.sleep(20);
-//            throttler.call(String.format("%d", i));
-//        }
-//
-//
-//        Thread.sleep(200);
-//        throttler.terminate();
-//    }
 
     private long getNextThrottle() {
         long l = Clock.currentTimeMillis() - prevTime;

@@ -22,6 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.coodex.util.Common.cast;
 
+/**
+ * 泛型工具
+ */
 public class GenericTypeHelper {
 
     private static final SingletonMap<Type, GenericTypeInfo> typeInfos = SingletonMap.<Type, GenericTypeInfo>builder()

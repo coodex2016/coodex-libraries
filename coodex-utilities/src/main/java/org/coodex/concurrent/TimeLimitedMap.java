@@ -25,9 +25,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * 使用 {@link org.coodex.util.SingletonMap} 替代
+ *
  * @param <K>
  * @param <V>
  */
+@Deprecated
 public class TimeLimitedMap<K, V> {
 
     private final static long DEFAULT_TIMEOUT = 10000L;

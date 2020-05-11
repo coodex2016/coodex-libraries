@@ -1,1 +1,0 @@
-{{book.coodex_version}}

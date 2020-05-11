@@ -32,22 +32,6 @@ public class PojoInfo {
     private final Class<?> rowType;
     private final Map<String, PojoProperty> properties = new HashMap<>();
 
-//    @Deprecated
-//    public PojoInfo(Type type, Type... context) {
-//        this.type = org.coodex.util.TypeHelper.toTypeReference(type, context);
-//        rowType = TypeHelper.typeToClass(this.type);
-//        if (rowType == null) throw new RuntimeException(type + " is NOT POJO.");
-//
-////        Set<Type> contextSet = new HashSet<Type>();
-////        if (context != null && context.length > 0) {
-////            contextSet.addAll(Arrays.asList(context));
-////        }
-////        contextSet.add(type);
-////        context = contextSet.toArray(new Type[0]);
-//        buildMethodProperties();
-//        buildFieldProperties();
-//    }
-
     public PojoInfo(Type type) {
         this.type = type;
         this.rowType = GenericTypeHelper.typeToClass(this.type);

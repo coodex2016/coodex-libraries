@@ -16,10 +16,15 @@
 
 package org.coodex.util;
 
+import java.util.function.Function;
+
 /**
  * Created by davidoff shen on 2017-05-13.
  */
-public interface ClassNameFilter {
+@Deprecated
+public interface ClassNameFilter extends Function<String, Boolean> {
 
-    boolean accept(String className);
+    default boolean accept(String className) {
+        return apply(className);
+    }
 }

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
+import static org.coodex.util.Common.rte;
 import static org.coodex.util.Common.sleep;
 
 public class TracerTest {
@@ -49,6 +50,40 @@ public class TracerTest {
                             else
                                 return "hello tracer.";
 
+                        })
+        );
+
+        System.out.println(
+                Tracer.newTracer()
+//                        //  org.slf4j.Logger
+//                        .logger(log)
+//                        // logger will be named after clazz
+//                        .logger(String.class)
+//                        // logger name
+//                        .logger("TEST")
+//                        // tracer名
+//                        .named("test")
+//                        // supplier方式指定tracer名
+//                        .named(() -> "test")
+                        // 需要跟踪记录的代码段
+                        .trace(() -> {
+                            try {
+                                Tracer.putTrace("hello", "coodex"); // 需要跟踪的信息项
+
+                                Tracer.start("case1");
+                                Clock.sleep(1000);
+                                Tracer.end("case1");
+
+                                Tracer.start("case2");
+                                Clock.sleep(300);
+                                Tracer.end("case2");
+                                if (new Random().nextBoolean())
+                                    throw new RuntimeException("em~~~~");
+                                else
+                                    return "hello tracer.";
+                            } catch (Throwable th) {
+                                throw rte(th);
+                            }
                         })
         );
     }

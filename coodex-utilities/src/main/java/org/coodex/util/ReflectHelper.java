@@ -15,11 +15,13 @@
  */
 package org.coodex.util;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -28,11 +30,11 @@ import static org.coodex.util.Common.cast;
 /**
  * @author Davidoff
  */
-@Slf4j
 public class ReflectHelper {
 
 
-    public static final ClassDecision NOT_NULL = new NotNullDecision();
+    public static final Function<Class<?>, Boolean> NOT_NULL = new NotNullDecision();
+    private static final Logger log = LoggerFactory.getLogger(ReflectHelper.class);
 
     private ReflectHelper() {
     }
@@ -141,7 +143,7 @@ public class ReflectHelper {
     }
 
     public static Field[] getAllDeclaredFields(Class<?> clz,
-                                               ClassDecision decision) {
+                                               Function<Class<?>, Boolean> decision) {
         if (clz == null)
             throw new NullPointerException("class is NULL");
         if (decision == null) {
@@ -149,7 +151,7 @@ public class ReflectHelper {
         }
         Map<String, Field> fields = new HashMap<>();
         Class<?> clazz = clz;
-        while (decision.determine(clazz)) {
+        while (decision.apply(clazz)) {
             Field[] declaredFields = clazz.getDeclaredFields();
             for (Field field : declaredFields) {
                 if (!fields.containsKey(field.getName())) {
@@ -176,114 +178,6 @@ public class ReflectHelper {
         }
     }
 
-//    private static Collection<Class<?>> getClasses(String packageName,
-//                                                  ClassNameFilter filter) {
-//        ClassLoader classLoader = ReflectHelper.class.getClassLoader();
-//
-//        List<Class<?>> list = new ArrayList<Class<?>>();
-////        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-//        // 枚举所有的符合的package
-//        String path = packageName.replace('.', '/');
-//        try {
-//            Enumeration<URL> resources = classLoader.getResources(path);
-//            while (resources.hasMoreElements()) {
-//                URL url = resources.nextElement();
-//
-//                String resource = URLDecoder.decode(
-//                        url.getFile().replace("+", "%2B")/* 缺陷？ */,
-//                        System.getProperty("file.encoding"));
-//
-//                // 针对每一个匹配的包进行检索
-//                int indexOfZipMarker = resource.indexOf('!');
-//                if (indexOfZipMarker > 0) { // .zip, .jar
-//
-//                    list.addAll(loadFromZipFile(packageName, filter, new File(
-//                            resource.substring(5 /* 去掉file协议头 */, indexOfZipMarker))));
-//
-//                } else {// 文件夹
-//
-//                    File dir;
-//
-//                    dir = new File(url.toURI());
-//                    list.addAll(loadFromDirectory(packageName, filter, dir));
-//
-//                }
-//            }
-//        } catch (IOException e) {
-//            log.warn("{}", e.getLocalizedMessage(), e);
-//        } catch (URISyntaxException e) {
-//            log.warn("{}", e.getLocalizedMessage(), e);
-//        }
-//        return list;
-//    }
-
-//    private static Collection<Class<?>> loadFromDirectory(
-//            String packageName, ClassNameFilter filter, File dir) {
-//
-//        log.debug("Scan package[{}] in dir[{}]", packageName,
-//                dir.getAbsolutePath());
-//
-//        List<Class<?>> result = new ArrayList<Class<?>>();
-//        for (File f : dir.listFiles()) {
-//            String fileName = f.getName();
-//            if (f.isDirectory()) {
-//                result.addAll(loadFromDirectory(packageName + "." + fileName,
-//                        filter, f));
-//            } else {
-//
-//                if (fileName.endsWith(".class")) {
-//                    String className = packageName + "."
-//                            + fileName.substring(0, fileName.length() - 6);
-//                    try {
-//                        if (filter == null || filter.accept(className))
-//                            result.add(Class.forName(className));
-//
-//                    } catch (Throwable e) {
-//                        log.debug("load Class {} fail. {}", className,
-//                                e.getLocalizedMessage(), e);
-//                    }
-//                }
-//            }
-//        }
-//        return result;
-//    }
-//
-//    private static Collection<Class<?>> loadFromZipFile(
-//            String packageName, ClassNameFilter filter, File zipFile) throws IOException {
-//
-//        List<Class<?>> list = new ArrayList<Class<?>>();
-//        ZipFile zip = new ZipFile(zipFile);
-//
-//        log.debug("Scan package[{}] in [{}]", packageName,
-//                zipFile.getAbsolutePath());
-//
-//        try {
-//            Enumeration<? extends ZipEntry> entries = zip.entries();
-//            while (entries.hasMoreElements()) {
-//                ZipEntry entry = entries.nextElement();
-//                String entryName = entry.getName().replace('/', '.');
-//
-//                // 此包中的class
-//                if (entryName.startsWith(packageName)
-//                        && entryName.endsWith(".class")) {
-//                    String className = entryName
-//                            .substring(0, entryName.length() - 6);
-//                    try {
-//                        if (filter == null || filter.accept(className))
-//                            list.add(Class.forName(className));
-//
-//                    } catch (ClassNotFoundException e) {
-//                        log.debug("load Class {} fail. {}", className,
-//                                e.getLocalizedMessage(), e);
-//                    }
-//                }
-//            }
-//            return list;
-//        } finally {
-//            zip.close();
-//        }
-//    }
-
     private static String resourceToClassName(String resourceName) {
         if (resourceName.endsWith(".class")) {
             return resourceName.substring(0, resourceName.length() - 6).replace('/', '.');
@@ -301,33 +195,22 @@ public class ReflectHelper {
         return paths;
     }
 
-    public static void foreachClass(final Processor processor, final ClassNameFilter filter, String... packages) {
+    public static void foreachClass(final Consumer<Class<?>> processor, final Function<String, Boolean> filter, String... packages) {
         if (processor == null) return;
         ResourceScanner.newBuilder((resource, resourceName) -> {
             String className = resourceToClassName(resourceName);
             try {
-                processor.process(Class.forName(className));
+                processor.accept(Class.forName(className));
             } catch (ClassNotFoundException e) {
                 log.warn("load class fail. {}, {}", className, e.getLocalizedMessage());
             }
         }).filter(resourceName -> {
             String className = resourceToClassName(resourceName);
-            return className != null && filter.accept(className);
-        }).build().scan(packageToPath(packages));
-//        Common.forEach((resource, resourceName) -> {
-//            String className = resourceToClassName(resourceName);
-//            try {
-//                processor.process(Class.forName(className));
-//            } catch (ClassNotFoundException e) {
-//                log.warn("load class fail. {}, {}", className, e.getLocalizedMessage());
-//            }
-//        }, (root, resourceName) -> {
-//            String className = resourceToClassName(resourceName);
-//            return className != null && filter.accept(className);
-//        }, packageToPath(packages));
+            return className != null && filter.apply(className);
+        }).build()
+                .scan(packageToPath(packages));
     }
 
-    @SuppressWarnings("unused")
     public static <T> T throwExceptionObject(Class<T> interfaceClass, final Supplier<Throwable> supplier) {
         return cast(Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass},
                 (proxy, method, args) -> {
@@ -335,20 +218,12 @@ public class ReflectHelper {
                 }));
     }
 
-    @SuppressWarnings("unused")
     public static <T> T throwExceptionObject(Class<T> interfaceClass, final Function<Method, Throwable> function) {
         return cast(Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass},
                 (proxy, method, args) -> {
                     throw function.apply(method);
                 }));
     }
-
-//    public static <T> T throwExceptionObject(Class<T> interfaceClass, final Throwable th) {
-//        return cast(Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass},
-//                (proxy, method, args) -> {
-//                    throw th;
-//                }));
-//    }
 
     public static String typeToCodeStr(Type type) {
         StringBuilder builder = new StringBuilder();
@@ -408,24 +283,9 @@ public class ReflectHelper {
         }
     }
 
-//    @SuppressWarnings("rawtypes")
-//    private static Collection<Class> getAllInterface(Class... aClass) {
-//        if (aClass == null || aClass.length == 0) return Collections.emptySet();
-//        Collection<Class> collection = new HashSet<Class>();
-//        for (Class clz : aClass) {
-//            addInterfaceTo(clz, collection);
-//        }
-//        return collection;
-//    }
-
-//    @Deprecated
-//    public static <T> T extend(final T o, final Object... objects) {
-//        return extendInterface(o, objects);
-//    }
-
     public static boolean isAssignable(Class<?> from, Class<?> to) {
         if (from.isArray() && to.isArray())
-            return Objects.equals(from, to);//isAssignable(from.getComponentType(), to.getComponentType());
+            return Objects.equals(from, to);
         if (from.isArray() || to.isArray())
             return false;
         return to.isAssignableFrom(from);
@@ -438,12 +298,6 @@ public class ReflectHelper {
         }
         return match;
     }
-
-//    private static String getTypeInfo(Type type){
-//        StringBuilder builder = new StringBuilder();
-//        builder.append(type.getTypeName())
-//        return builder.toString();
-//    }
 
     private static boolean isMatchForDebug(Type instanceType, Type serviceType) {
         if (Objects.equals(instanceType, serviceType)) return true;
@@ -474,7 +328,6 @@ public class ReflectHelper {
      * @param <T>     extends S
      * @return 扩展后的对象
      */
-    @SuppressWarnings("unused")
     public static <S, T extends S> S extendInterface(final T o, final Object... objects) {
         if (o == null) return null;
         if (objects == null || objects.length == 0) return o;
@@ -491,13 +344,19 @@ public class ReflectHelper {
                 (proxy, method, args) -> invoke(method, o, objects, args)));
     }
 
-    public interface Processor {
-        void process(Class<?> serviceClass);
-    }
-
-    public interface ClassDecision {
-        boolean determine(Class<?> clz);
-    }
+//    @Deprecated
+//    public interface Processor extends Consumer<Class<?>> {
+//        default void process(Class<?> serviceClass) {
+//            this.accept(serviceClass);
+//        }
+//    }
+//
+//    @Deprecated
+//    public interface ClassDecision extends Function<Class<?>, Boolean> {
+//        default boolean determine(Class<?> clz) {
+//            return this.apply(clz);
+//        }
+//    }
 
     public static class MethodParameter {
 
@@ -518,36 +377,8 @@ public class ReflectHelper {
             genericType = method.getGenericParameterTypes()[index];
 
             name = getParameterName(method, index, "p");
-//            try {
-//                getName = getParameterName();
-//            } catch (Throwable th) {
-//            }
-//            if (Common.isBlank(getName))
-//                getName = "arg" + index;
 
         }
-
-//        /**
-//         * 使用java 8的getParameters来获取参数名，编译时，使用jdk的javac，-parameters。在java8环境中运行有效
-//         *
-//         * @return
-//         * @throws NoSuchMethodException
-//         * @throws InvocationTargetException
-//         * @throws IllegalAccessException
-//         * @throws ClassNotFoundException
-//         */
-//        private String getParameterName() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
-//            return ReflectHelper.getParameterName(method, index);
-////
-////            Method getParameters = Method.class.getMethod("getParameters");
-////            Object[] parameters = (Object[]) getParameters.invoke(getMethod());
-////            if (parameters != null) {
-////                Class<?> methodParameterClass = Class.forName("java.lang.reflect.Parameter");
-////                Method getName = methodParameterClass.getMethod("getName");
-////                return (String) getName.invoke(parameters[index]);
-////            }
-////            return null;
-//        }
 
         public Class<?> getType() {
             return type;
@@ -585,26 +416,25 @@ public class ReflectHelper {
         }
     }
 
-    private static class NotNullDecision implements ClassDecision {
-        //      @Override
-        public boolean determine(Class<?> clz) {
+    private static class NotNullDecision implements Function<Class<?>, Boolean> {
+
+        @Override
+        public Boolean apply(Class<?> clz) {
             return clz != null;
         }
     }
 
-    @SuppressWarnings("unused")
-    private static class AllObjectDecision implements ClassDecision {
-        //      @Override
-        public boolean determine(Class<?> clz) {
+    private static class AllObjectDecision implements Function<Class<?>, Boolean> {
+        @Override
+        public Boolean apply(Class<?> clz) {
             return clz != null && clz != Object.class;
         }
 
     }
 
-    @SuppressWarnings("unused")
-    private static class AllObjectExceptJavaSDK implements ClassDecision {
-        //      @Override
-        public boolean determine(Class<?> clz) {
+    private static class AllObjectExceptJavaSDK implements Function<Class<?>, Boolean> {
+        @Override
+        public Boolean apply(Class<?> clz) {
             return clz != null && !clz.getPackage().getName().startsWith("java");
         }
 

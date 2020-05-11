@@ -17,7 +17,7 @@
 package org.coodex.util;
 
 public abstract class SelectableFactoryLoaderImpl<PARAM, PROD, F extends SelectableFactory<PROD, PARAM>>
-        extends SelectableServiceLoaderImpl<PARAM, F>
+        extends LazySelectableServiceLoader<PARAM, F>
         implements SelectableFactoryLoader<PARAM, PROD, F> {
 
     public SelectableFactoryLoaderImpl() {

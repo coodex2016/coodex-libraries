@@ -17,24 +17,16 @@
 package org.coodex.billing;
 
 import org.coodex.util.LazySelectableServiceLoader;
+import org.coodex.util.SelectableServiceLoader;
 
 import static org.coodex.util.Common.cast;
 
 public class BillCalculator {
 
 
-    private static final LazySelectableServiceLoader<Chargeable, Calculator<Chargeable>> CALCULATOR_LOADER =
+    private static final SelectableServiceLoader<Chargeable, Calculator<Chargeable>> CALCULATOR_LOADER =
             new LazySelectableServiceLoader<Chargeable, Calculator<Chargeable>>() {
             };
-//    Singleton<SelectableServiceLoader<Chargeable, Calculator<Chargeable>>> CALCULATOR_LOADER =
-//            new Singleton<SelectableServiceLoader<Chargeable, Calculator<Chargeable>>>(new Singleton.Builder<SelectableServiceLoader<Chargeable, Calculator<Chargeable>>>() {
-//                @Override
-//                public SelectableServiceLoader<Chargeable, Calculator<Chargeable>> build() {
-//                    return new SelectableServiceLoader<Chargeable, Calculator<Chargeable>>() {
-//                    };
-//                }
-//            });
-
 
     public static <C extends Chargeable> Bill<C> calc(C chargeable) {
         if (chargeable == null) throw new NullPointerException("chargeable is null.");

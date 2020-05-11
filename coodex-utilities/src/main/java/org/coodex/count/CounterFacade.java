@@ -17,7 +17,7 @@
 package org.coodex.count;
 
 import org.coodex.util.ServiceLoader;
-import org.coodex.util.ServiceLoaderImpl;
+import org.coodex.util.LazyServiceLoader;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,7 +26,7 @@ import java.util.Collection;
  * Created by davidoff shen on 2017-04-18.
  */
 public class CounterFacade {
-    private static final ServiceLoader<CountFacade> COUNTER_FACTORY = new ServiceLoaderImpl<CountFacade>() {
+    private static final ServiceLoader<CountFacade> COUNTER_FACTORY = new LazyServiceLoader<CountFacade>() {
     };
 
     /**

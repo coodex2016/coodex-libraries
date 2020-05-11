@@ -17,6 +17,7 @@
 package org.coodex.concurrent;
 
 import org.coodex.util.LazyServiceLoader;
+import org.coodex.util.ServiceLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +26,7 @@ import java.util.concurrent.*;
 
 class ExecutorServiceImpl implements ExecutorService {
 
-    private static final LazyServiceLoader<ExecutableWrapper> executableWrapperLoader =
+    private static final ServiceLoader<ExecutableWrapper> executableWrapperLoader =
             new LazyServiceLoader<ExecutableWrapper>(new ExecutableWrapperImpl()) {
             };
     protected final ExecutableWrapper wrapper;

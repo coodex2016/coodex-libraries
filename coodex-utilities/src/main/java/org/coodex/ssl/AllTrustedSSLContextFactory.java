@@ -16,21 +16,22 @@
 
 package org.coodex.ssl;
 
-import lombok.extern.slf4j.Slf4j;
+
 import org.coodex.util.Common;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
  * 信任所有证书
  */
-@Slf4j
 public class AllTrustedSSLContextFactory implements SSLContextFactory {
+    private final static Logger log = LoggerFactory.getLogger(AllTrustedSSLContextFactory.class);
 
 
     @Override

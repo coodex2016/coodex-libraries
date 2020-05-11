@@ -4,6 +4,9 @@ coodex的一些通用库，从concrete项目中分离成独立项目
 
 ## change log
 
+- 缺陷修复：SingletonMap首次创建实例时，maxAge参数不生效的问题
+- 文档编写
+
 ### 2020-05-08
 
 - 缺陷修复：spring boot maven plugin下搜索资源失败的歪问题

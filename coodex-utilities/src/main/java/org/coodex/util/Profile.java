@@ -21,7 +21,9 @@ import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -73,9 +75,11 @@ public abstract class Profile {
             }
     );
     private static final URL DEFAULT_URL;
+
     @SuppressWarnings("StaticInitializerReferencesSubClass")
     private static final SingletonMap<String, Profile> WRAPPER_PROFILES = SingletonMap.<String, Profile>builder()
             .function(ProfileWrapper::new).build();
+
     private static final Singleton<Long> RELOAD_INTERVAL_SINGLETON = Singleton.with(
             () -> Config.BASE_SYSTEM_PROPERTIES.getValue(Profile.class.getName() + ".reloadInterval",
                     () -> toLong(System.getProperty("Profile.reloadInterval"), 0L)
@@ -169,19 +173,25 @@ public abstract class Profile {
     }
 
     public static Profile get(String path1, String path2, String... others) {
-        return new MergedProfile(path1, path2, others);
+        MergedProfile mergedProfile = new MergedProfile().merge(path1).merge(path2);
+        if (others != null && others.length > 0) {
+            for (String path : others) {
+                mergedProfile.merge(path);
+            }
+        }
+        return mergedProfile;
     }
 
 
-    @Deprecated
-    public static Profile getProfile(URL url) {
-        return get(url);
-    }
-
-    @Deprecated
-    public static Profile getProfile(String path) {
-        return get(path);
-    }
+//    @Deprecated
+//    public static Profile getProfile(URL url) {
+//        return get(url);
+//    }
+//
+//    @Deprecated
+//    public static Profile getProfile(String path) {
+//        return get(path);
+//    }
 
     public boolean getBool(String key, boolean v) {
         return toBool(getString(key), v);
@@ -226,35 +236,10 @@ public abstract class Profile {
         return s == null ? v : actualValue(s);
     }
 
-//    private boolean isPlaceHolder(String v) {
-//        return v.startsWith("${") && v.endsWith("}");
-//
-//    }
-
-//    private String actualValue(String v) {
-//        if (isPlaceHolder(v)) {
-//            String x = v.substring(2, v.length() - 1);
-//            int index = x.indexOf(':');
-//            String namespace = null;
-//            String key = x;
-//            if(index > 0){
-//                namespace = x.substring(0,index);
-//                key = x.substring(index + 1);
-//            }
-//            Profile profile = namespace == null ? this : Profile.getProfile(namespace + ".properties");
-//
-//            return profile.getString(key);
-//        }
-//        return v;
-//    }
 
     public String getString(String key) {
         return getString(key, (String) null);
     }
-//    {
-//        String s = p.getProperty(key);
-//        return s == null ? v : actualValue(s);
-//    }
 
     public int getInt(String key) {
         return getInt(key, 0);
@@ -400,22 +385,25 @@ class ProfileWrapper extends Profile {
 class MergedProfile extends Profile {
     private final List<Profile> profiles = new ArrayList<>();
 
-    MergedProfile(String p1, String p2, String... resources) {
-        Set<String> joined = new HashSet<>();
-        if (p1 != null) {
-            joined.add(p1);
-            profiles.add(Profile.get(p1));
-        }
-        if (p2 != null && !joined.contains(p2)) {
-            joined.add(p2);
-            profiles.add(Profile.get(p2));
-        }
+    MergedProfile() {
+    }
 
-        for (String x : resources) {
-            if (joined.contains(x)) continue;
-            joined.add(x);
-            profiles.add(Profile.get(x));
+    MergedProfile merge(Profile profile) {
+        if (profile != null && !profiles.contains(profile)) {
+            if (profile instanceof MergedProfile) {
+                for (Profile p : ((MergedProfile) profile).profiles) {
+                    merge(p);
+                }
+            } else {
+                profiles.add(profile);
+            }
         }
+        return this;
+    }
+
+    MergedProfile merge(String name) {
+        if (name == null) return this;
+        return merge(Profile.get(name));
     }
 
     private Profile getFirst(String key) {

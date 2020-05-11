@@ -16,13 +16,17 @@
 
 package org.coodex.util;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 渲染器统一接口
  */
-@Slf4j
+
 public class Renderer {
+
+    private final static Logger log = LoggerFactory.getLogger(Renderer.class);
+
 
     private static final SelectableServiceLoader<String, RenderService> RENDER_SERVICE_LOADER
             = new LazySelectableServiceLoader<String, RenderService>(new DefaultRenderer()) {
@@ -30,7 +34,7 @@ public class Renderer {
 
     /**
      * @param template 待渲染的模板
-     * @param objects  渲染参数
+     * @param objects  渲染参数，支持{@link java.util.function.Supplier}
      * @return 渲染后的字符串
      */
     public static String render(String template, Object... objects) {

@@ -23,16 +23,31 @@ import java.util.List;
  */
 public class Polygon {
 
-    private final static InAlgorithm inAlgorithm = new TurnoverNumberAlgorithm();
     private final Point[] points;
-
 
     public Polygon(List<Point> points) {
         this.points = points.toArray(new Point[0]);
     }
 
+    public boolean inPolygon(Point point, ALGORITHM algorithm) {
+        return algorithm.inAlgorithm.in(point, points);
+    }
+
     public boolean inPolygon(Point point) {
-        return inAlgorithm.in(point, points);
+        return inPolygon(point, ALGORITHM.TURNOVER);
+    }
+
+    public enum ALGORITHM {
+        RAY(new RayAlgorithm()), // 射线法
+        TURNOVER(new TurnoverNumberAlgorithm());//回转法
+
+
+        private final InAlgorithm inAlgorithm;
+
+        ALGORITHM(InAlgorithm inAlgorithm) {
+            this.inAlgorithm = inAlgorithm;
+        }
+
     }
 
     interface InAlgorithm {

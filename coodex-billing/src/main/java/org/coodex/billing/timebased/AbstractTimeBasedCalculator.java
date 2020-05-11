@@ -19,6 +19,7 @@ package org.coodex.billing.timebased;
 import org.coodex.billing.*;
 import org.coodex.util.LazySelectableServiceLoader;
 import org.coodex.util.Section;
+import org.coodex.util.SelectableServiceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,7 @@ public abstract class AbstractTimeBasedCalculator<C extends TimeBasedChargeable>
         }
     };
 
-    private static LazySelectableServiceLoader<Revision, RevisionToDetail<Revision>> detailCreators =
+    private static final SelectableServiceLoader<Revision, RevisionToDetail<Revision>> detailCreators =
             new LazySelectableServiceLoader<Revision, RevisionToDetail<Revision>>(DEFAULT_REVISION) {
             };
 
@@ -81,9 +82,13 @@ public abstract class AbstractTimeBasedCalculator<C extends TimeBasedChargeable>
 //                        }
 //                    }
 //            );
-    private LazySelectableServiceLoader<String, BillingModel<C>> billingModels = new LazySelectableServiceLoader<String, BillingModel<C>>() {
+    private final SelectableServiceLoader<String, BillingModel<C>> billingModels = new LazySelectableServiceLoader<String, BillingModel<C>>() {
+        @Override
+        protected Object getGenericTypeSearchContextObject() {
+            return AbstractTimeBasedCalculator.this;
+        }
     };
-    private LazySelectableServiceLoader<C, BillingRuleRepository<C>> ruleRepos = new LazySelectableServiceLoader<C, BillingRuleRepository<C>>(
+    private final SelectableServiceLoader<C, BillingRuleRepository<C>> ruleRepos = new LazySelectableServiceLoader<C, BillingRuleRepository<C>>(
             new BillingRuleRepository<C>() {
                 @Override
                 public Collection<BillingRule> getRulesBy(C chargeable) {
@@ -96,6 +101,10 @@ public abstract class AbstractTimeBasedCalculator<C extends TimeBasedChargeable>
                 }
             }
     ) {
+        @Override
+        protected Object getGenericTypeSearchContextObject() {
+            return AbstractTimeBasedCalculator.this;
+        }
     };
 
     protected abstract TimeUnit getTimeUnit();
@@ -116,7 +125,7 @@ public abstract class AbstractTimeBasedCalculator<C extends TimeBasedChargeable>
             List<Revision> onlyOnce = new ArrayList<>();// 包含OnlyOnce的
             for (Revision revision : chargeable.getRevisions()) {
                 if (revision instanceof Adjustment && revision instanceof PaidAdjustment) {
-                    adjustments.add(cast( revision));
+                    adjustments.add(cast(revision));
                 } else {
                     if (!(revision instanceof OnlyOnce)) {
                         revisions.add(revision);

@@ -40,7 +40,7 @@ public final class Clock {
         if (getMagnification() == 1.0f) {
             return new SystemClockAgent();
         } else {
-            return new ServiceLoaderImpl<ClockAgent>() {
+            return new LazyServiceLoader<ClockAgent>() {
                 @Override
                 protected ClockAgent getDefaultInstance() {
                     return new DefaultClockAgent();

@@ -46,7 +46,7 @@ public class FreeMarkerRenderService implements RenderService {
     @SneakyThrows
     private static Template getTemplate(String template) {
         synchronized (TEMPLATE_LOADER) {
-            TEMPLATE_LOADER.putTemplate(template, template);// todo
+            TEMPLATE_LOADER.putTemplate(template, template);
         }
         return FREEMARKER.getTemplate(template);
     }
@@ -70,6 +70,14 @@ public class FreeMarkerRenderService implements RenderService {
         return values;
     }
 
+//    public static void main(String[] args) {
+//        System.out.println(Renderer.render("现在时刻是 ${o1}", Common.now()));
+//        Map<String, Object> map = new HashMap<>();
+//        map.put("test", "test");
+//        System.out.println(Renderer.render("测试：${o1.test}", map));
+//        System.out.println(Renderer.render("测试：${o2!\"xxx\"}", map));
+//    }
+
     @Override
     public String render(String template, Object... objects) {
         if (objects == null || objects.length == 0) return template;
@@ -79,13 +87,5 @@ public class FreeMarkerRenderService implements RenderService {
     @Override
     public boolean accept(String param) {
         return param != null && PATTERN.matcher(param).find();
-    }
-
-    public static void main(String[] args) {
-        System.out.println(Renderer.render("现在时刻是 ${o1}",Common.now()));
-        Map<String,Object> map = new HashMap<>();
-        map.put("test","test");
-        System.out.println(Renderer.render("测试：${o1.test}", map));
-        System.out.println(Renderer.render("测试：${o2!\"xxx\"}", map));
     }
 }

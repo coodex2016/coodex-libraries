@@ -16,14 +16,17 @@
 
 package org.coodex.id;
 
-import lombok.extern.slf4j.Slf4j;
 import org.coodex.config.Config;
 import org.coodex.util.Base58;
 import org.coodex.util.Common;
 import org.coodex.util.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class SnowflakeIdGeneratorService implements IDGeneratorService {
+
+    private static final Logger log = LoggerFactory.getLogger(SnowflakeIdGeneratorService.class);
+
     private final Singleton<SnowflakeIdWorker> snowflakeIdWorkerSingleton = Singleton.with(
             () -> {
                 SnowflakeIdWorker snowflakeIdWorker;
@@ -44,9 +47,6 @@ public class SnowflakeIdGeneratorService implements IDGeneratorService {
                 return snowflakeIdWorker;
             }
     );
-
-    public SnowflakeIdGeneratorService() {
-    }
 
     @Override
     public String newId() {
