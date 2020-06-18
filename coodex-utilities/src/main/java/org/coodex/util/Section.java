@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @param <T> 可比较的
  */
-public class Section<T extends Comparable<T>> {
+public abstract class Section<T extends Comparable<T>> {
 
     private final T start;
     private T end;
@@ -51,6 +51,7 @@ public class Section<T extends Comparable<T>> {
      * @param <S>      Section
      * @return 合并，并排序以后的线段
      */
+    @SuppressWarnings("all")
     public static <T extends Comparable<T>, S extends Section<T>>
     List<S> merge(List<S> sections, Builder<T, S> builder) {
         if (sections == null || sections.size() == 0) return new ArrayList<>();
@@ -81,7 +82,11 @@ public class Section<T extends Comparable<T>> {
                 }
                 continue;
             }
-            // 合并
+            // 合
+            //
+            //
+            //
+            // 并
             section.setEnd(periodToMerge.getEnd());
 //                    builder.create(section.getStart(), periodToMerge.getEnd());
 //            resultList.set(resultList.size() - 1, section);
