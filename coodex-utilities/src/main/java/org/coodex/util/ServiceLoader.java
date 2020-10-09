@@ -16,8 +16,8 @@
 
 package org.coodex.util;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by davidoff shen on 2017-04-26.
@@ -26,7 +26,6 @@ public interface ServiceLoader<T> {
 
 
     Map<String, T> getAll();
-
 
 
     T get(Class<? extends T> serviceClass);
@@ -38,4 +37,30 @@ public interface ServiceLoader<T> {
     T get();
 
     T getDefault();
+
+    /**
+     * 对所有服务进行排序
+     *
+     * @return 排序后的所有服务
+     * @see SPI
+     */
+    default List<T> sorted() {
+        return sorted(Comparator.comparingInt(SPI::getServiceOrder));
+    }
+
+    /**
+     * 对所有服务进行排序
+     *
+     * @param comparator comparator
+     * @return 排序后的所有服务
+     * @see SPI
+     */
+    default List<T> sorted(Comparator<? super T> comparator) {
+        return Optional.ofNullable(getAll())
+                .map(map ->
+                        map.values().stream().sorted(comparator).collect(Collectors.toList())
+                )
+                .orElse(new ArrayList<>(0));
+    }
+
 }

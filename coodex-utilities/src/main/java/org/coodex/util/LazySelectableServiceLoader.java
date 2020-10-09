@@ -54,6 +54,7 @@ public abstract class LazySelectableServiceLoader<Param_Type, T extends Selectab
     );
 
     private Function<Method, RuntimeException> exceptionFunction = null;
+    private Singleton<List<T>> sortedServices = Singleton.with(this::sorted);
 
     public LazySelectableServiceLoader() {
         this((T) null);
@@ -83,16 +84,8 @@ public abstract class LazySelectableServiceLoader<Param_Type, T extends Selectab
         );
     }
 
-
     protected Object getGenericTypeSearchContextObject() {
         return this;
-    }
-
-    protected Type getServiceType() {
-        return solveFromInstance(
-                SelectableServiceLoader.class.getTypeParameters()[1],
-                getGenericTypeSearchContextObject()
-        );
     }
 
 //    @Deprecated
@@ -100,6 +93,12 @@ public abstract class LazySelectableServiceLoader<Param_Type, T extends Selectab
 //        return typeToClass(solveFromInstance(SelectableServiceLoaderImpl.class.getTypeParameters()[1], $getInstance()));
 //    }
 
+    protected Type getServiceType() {
+        return solveFromInstance(
+                SelectableServiceLoader.class.getTypeParameters()[1],
+                getGenericTypeSearchContextObject()
+        );
+    }
 
     private ServiceLoader<T> getServiceLoaderFacade() {
         if (serviceLoaderFacade == null) {
@@ -149,7 +148,6 @@ public abstract class LazySelectableServiceLoader<Param_Type, T extends Selectab
         return serviceLoaderFacade;
     }
 
-
     private boolean accept(T instance, Param_Type param) {
 //        Class tClass = instance.getClass();
         Class<?> paramClass = param == null ? null : param.getClass();
@@ -175,11 +173,10 @@ public abstract class LazySelectableServiceLoader<Param_Type, T extends Selectab
         }
     }
 
-
     @Override
     public List<T> selectAll(Param_Type param) {
         List<T> list = new ArrayList<>();
-        for (T instance : getAll().values()) {
+        for (T instance : /*getAll().values()*/ sortedServices.get()) {
             if (accept(instance, param))
                 list.add(instance);
         }
@@ -192,10 +189,9 @@ public abstract class LazySelectableServiceLoader<Param_Type, T extends Selectab
         return list;
     }
 
-
     @Override
     public T select(Param_Type param) {
-        for (T instance : getAll().values()) {
+        for (T instance : /*getAll().values()*/ sortedServices.get()) {
             if (accept(instance, param))
                 return instance;
         }
