@@ -572,11 +572,10 @@ public class Common {
     /**
      * 交集
      *
-     * @param set1
-     * @param set2
-     * @return
+     * @param set1 set1
+     * @param set2 set2
+     * @return 交集
      */
-    @SuppressWarnings("JavaDoc")
     public static <T> Set<T> intersection(Set<T> set1, Set<T> set2) {
         Set<T> result = new HashSet<>(set1);
         result.retainAll(set2);
@@ -586,11 +585,10 @@ public class Common {
     /**
      * 差集 org - todiv
      *
-     * @param org
-     * @param todiv
-     * @return
+     * @param org   org
+     * @param todiv todiv
+     * @return 差集 org - todiv
      */
-    @SuppressWarnings("JavaDoc")
     public static <T> Set<T> difference(Set<T> org, Set<T> todiv) {
         Set<T> result = new HashSet<>(org);
         result.removeAll(todiv);

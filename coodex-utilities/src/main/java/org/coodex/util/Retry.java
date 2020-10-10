@@ -179,21 +179,21 @@ public class Retry {
         return status;
     }
 
-    /**
-     * @param allFailedHandle allFailedHandle
-     * @return Retry
-     * @see Builder#onAllFailed(AllFailedHandle)
-     * @deprecated
-     */
-    @Deprecated
-    public Retry handle(AllFailedHandle allFailedHandle) {
-        synchronized (this) {
-            if (status.status >= Status.RUNNING.getStatus())
-                throw new IllegalStateException();
-            this.allFailedHandle = allFailedHandle;
-        }
-        return this;
-    }
+//    /**
+//     * @param allFailedHandle allFailedHandle
+//     * @return Retry
+//     * @see Builder#onAllFailed(AllFailedHandle)
+//     * @deprecated
+//     */
+//    @Deprecated
+//    public Retry handle(AllFailedHandle allFailedHandle) {
+//        synchronized (this) {
+//            if (status.status >= Status.RUNNING.getStatus())
+//                throw new IllegalStateException();
+//            this.allFailedHandle = allFailedHandle;
+//        }
+//        return this;
+//    }
 
 
     public enum Status {

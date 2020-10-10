@@ -70,51 +70,46 @@ public final class Clock {
     }
 
     /**
-     * @return
+     * @return “人间”当前时间戳
      * @see ClockAgent#currentTimeMillis()
      */
-    @SuppressWarnings("JavaDoc")
     public static long currentTimeMillis() {
         return agentSingleton.get().currentTimeMillis();
     }
 
     /**
-     * @return
+     * @return “人间”当前时间
      * @see ClockAgent#getCalendar()
      */
-    @SuppressWarnings("JavaDoc")
     public static Calendar getCalendar() {
         return agentSingleton.get().getCalendar();
     }
 
     /**
-     * @param millis
-     * @throws InterruptedException
+     * @param millis 毫秒数
+     * @throws InterruptedException InterruptedException
      * @see ClockAgent#sleep(long)
      */
-    @SuppressWarnings("JavaDoc")
     public static void sleep(long millis) throws InterruptedException {
         agentSingleton.get().sleep(millis);
     }
 
     /**
-     * @param obj
-     * @param millis
-     * @throws InterruptedException
+     * @param obj    obj
+     * @param millis millis
+     * @throws InterruptedException InterruptedException
      * @see ClockAgent#objWait(Object, long)
      */
-    @SuppressWarnings("JavaDoc")
     public static void objWait(Object obj, long millis) throws InterruptedException {
         agentSingleton.get().objWait(obj, millis);
     }
 
     /**
-     * @param timeUnit
-     * @param timeout
-     * @throws InterruptedException
+     * @param timeUnit timeUnit
+     * @param timeout  timeout
+     * @throws InterruptedException InterruptedException
      * @see ClockAgent#sleep(TimeUnit, long)
      */
-    @SuppressWarnings("JavaDoc")
     public static void sleep(TimeUnit timeUnit, long timeout) throws InterruptedException {
         agentSingleton.get().sleep(timeUnit, timeout);
     }

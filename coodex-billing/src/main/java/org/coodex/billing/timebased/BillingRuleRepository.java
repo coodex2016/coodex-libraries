@@ -23,8 +23,8 @@ import java.util.Collection;
 public interface BillingRuleRepository<T extends TimeBasedChargeable> extends SelectableService<T> {
 
     /**
-     * @param chargeable 根据消费对象获取适用于消费的一组规则列表
-     * @return
+     * @param chargeable chargeable
+     * @return 根据消费对象获取适用于消费的一组规则列表
      */
     Collection<BillingRule> getRulesBy(T chargeable);
 }
