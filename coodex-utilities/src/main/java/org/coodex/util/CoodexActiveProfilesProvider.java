@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 coodex.org (jujus.shen@126.com)
+ * Copyright (c) 2020 coodex.org (jujus.shen@126.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,20 @@
 
 package org.coodex.util;
 
-public abstract class AbstractProfileProvider implements ProfileProvider {
+import java.util.ArrayList;
+
+public class CoodexActiveProfilesProvider implements ActiveProfilesProvider {
+    private final Singleton<String[]> activeProfiles = Singleton.with(
+            () ->
+                    Common.toArray(System.getProperty("coodex.active.profiles", ""), ",", new ArrayList<>())
+                            .stream()
+                            .filter(s -> !Common.isBlank(s))
+                            .toArray(String[]::new)
+
+    );
 
     @Override
-    public int compareTo(ProfileProvider o) {
-        return o.priority() - this.priority();
+    public String[] getActiveProfiles() {
+        return activeProfiles.get();
     }
-
 }

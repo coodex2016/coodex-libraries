@@ -18,7 +18,8 @@ package org.coodex.util;
 
 import java.net.URL;
 
-public class ProfileProviderBaseProperties extends AbstractProfileProvider {
+
+public class ProfileProviderBaseProperties /*extends AbstractProfileProvider*/ implements ProfileProvider {
     private static final String[] SUPPORTED = new String[]{".properties"};
 
     @Override
@@ -36,10 +37,10 @@ public class ProfileProviderBaseProperties extends AbstractProfileProvider {
         return new ProfileBaseProperties(url);
     }
 
-    @Override
-    public int priority() {
-        return 0;
-    }
+//    @Override
+//    public int priority() {
+//        return 0;
+//    }
 
     @Override
     public boolean accept(URL param) {

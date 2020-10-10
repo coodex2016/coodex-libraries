@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 coodex.org (jujus.shen@126.com)
+ * Copyright (c) 2020 coodex.org (jujus.shen@126.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,6 @@
 
 package org.coodex.util;
 
-import java.util.function.Function;
-
-/**
- * Created by davidoff shen on 2017-05-13.
- */
-@Deprecated
-public interface ClassNameFilter extends Function<String, Boolean> {
-
-    default boolean accept(String className) {
-        return apply(className);
-    }
+public interface ActiveProfilesProvider {
+    String[] getActiveProfiles();
 }

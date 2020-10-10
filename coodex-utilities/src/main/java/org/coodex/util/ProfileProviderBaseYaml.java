@@ -20,9 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
-import java.util.function.Supplier;
 
-public class ProfileProviderBaseYaml extends AbstractProfileProvider {
+@SPI.Ordered(0)
+public class ProfileProviderBaseYaml /*extends AbstractProfileProvider */ implements ProfileProvider {
 
     private final static Logger log = LoggerFactory.getLogger(ProfileProviderBaseYaml.class);
 
@@ -55,10 +55,10 @@ public class ProfileProviderBaseYaml extends AbstractProfileProvider {
         return new ProfileBaseYaml(url);
     }
 
-    @Override
-    public int priority() {
-        return 100;
-    }
+//    @Override
+//    public int priority() {
+//        return 100;
+//    }
 
     @Override
     public boolean accept(URL param) {

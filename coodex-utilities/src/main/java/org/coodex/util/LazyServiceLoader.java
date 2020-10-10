@@ -57,7 +57,7 @@ public abstract class LazyServiceLoader<T> implements ServiceLoader<T> {
 
                     } else {
                         StringJoiner joiner = new StringJoiner("\n\t");
-                        instances.instancesMap.forEach((k, v) -> joiner.add(k + ": " + v.toString()));
+                        instances.instancesMap.forEach((k, v) -> joiner.add(k + "(" + SPI.getServiceOrder(v) + "): " + v.toString()));
                         log.debug("{} SPI instances loaded for: {} instances: \n\t{}",
                                 instances.instancesMap.size(), getServiceType(), joiner.toString());
                     }

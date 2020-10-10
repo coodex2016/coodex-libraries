@@ -23,9 +23,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.coodex.util.Common.*;
 
@@ -63,10 +65,10 @@ public abstract class Profile {
             };
     private static final Singleton<String[]> ALL_SUPPORTED_FILE_EXT = Singleton.with(
             () -> {
-                ProfileProvider[] profileProviders = PROFILE_PROVIDER_LOADER.getAll().values().toArray(new ProfileProvider[0]);
-                Arrays.sort(profileProviders);
+//                ProfileProvider[] profileProviders = PROFILE_PROVIDER_LOADER.getAll().values().toArray(new ProfileProvider[0]);
+//                Arrays.sort(profileProviders);
                 List<String> list = new ArrayList<>();
-                for (ProfileProvider profileProvider : profileProviders) {
+                for (ProfileProvider profileProvider : PROFILE_PROVIDER_LOADER.sorted()) {
                     if (profileProvider.isAvailable()) {
                         list.addAll(Arrays.asList(profileProvider.getSupported()));
                     }
@@ -85,6 +87,7 @@ public abstract class Profile {
                     () -> toLong(System.getProperty("Profile.reloadInterval"), 0L)
             ) * 1000L
     );
+    // 单一资源到URL的映射
     private static final SingletonMap<String, URL> PROFILE_URLS = SingletonMap.<String, URL>builder()
             .function(new Function<String, URL>() {
                 @Override
@@ -115,6 +118,8 @@ public abstract class Profile {
             })
             .maxAge(RELOAD_INTERVAL_SINGLETON.get())
             .build();
+
+    // 单一URL到Profile的映射
     private static final SingletonMap<URL, Profile> URL_PROFILES_MAP = SingletonMap.<URL, Profile>builder()
             .function(new Function<URL, Profile>() {
                 @Override
@@ -130,6 +135,28 @@ public abstract class Profile {
                     }
                 }
             })
+            .maxAge(RELOAD_INTERVAL_SINGLETON.get())
+            .build();
+    private static final ServiceLoader<ActiveProfilesProvider> ACTIVE_PROFILES_PROVIDER_SERVICE_LOADER =
+            new LazyServiceLoader<ActiveProfilesProvider>() {
+            };
+    private static final Singleton<List<String>> ACTIVE_PROFILES = Singleton.with(() -> {
+        List<String> activeProfiles = new ArrayList<>();
+        ACTIVE_PROFILES_PROVIDER_SERVICE_LOADER
+                .sorted()
+                .forEach(
+                        activeProfilesProvider -> {
+                            for (String s : activeProfilesProvider.getActiveProfiles()) {
+                                if (!activeProfiles.contains(s)) {
+                                    activeProfiles.add(s);
+                                }
+                            }
+                        }
+                );
+        return Collections.unmodifiableList(activeProfiles);
+    });
+    static final SingletonMap<String, Profile> PATH_PROFILE_MAP = SingletonMap.<String, Profile>builder()
+            .function(Profile::getByPath)
             .maxAge(RELOAD_INTERVAL_SINGLETON.get())
             .build();
 
@@ -155,8 +182,34 @@ public abstract class Profile {
         return URL_PROFILES_MAP.get(url);
     }
 
-    static Profile getByPath(String path) {
-        return get(PROFILE_URLS.get(path));
+    private static List<URL> getExistsUrl(List<URL> activeProfile, URL baseUrl) {
+        if (DEFAULT_URL.equals(baseUrl)) return activeProfile;
+        List<URL> list = new ArrayList<>(activeProfile);
+        list.add(baseUrl);
+        return list;
+
+    }
+
+    private static Profile getByPath(String path) {
+        // 根据active.profiles设置包装所有Profile
+        // return get(PROFILE_URLS.get(path));
+
+        List<URL> activeProfileUrls = ACTIVE_PROFILES.get().stream()
+                .map(ap -> PROFILE_URLS.get(path + "-" + ap))
+                .filter(url -> !DEFAULT_URL.equals(url))
+                .collect(Collectors.toList());
+        URL baseProfileUrl = PROFILE_URLS.get(path);
+        List<URL> exists = getExistsUrl(activeProfileUrls, baseProfileUrl);
+        switch (exists.size()) {
+            case 0:
+                return get(DEFAULT_URL);
+            case 1:
+                return get(exists.get(0));
+            default:
+                MergedProfile mergedProfile = new MergedProfile();
+                exists.forEach(url -> mergedProfile.merge(get(url)));
+                return mergedProfile;
+        }
     }
 
     /**
@@ -173,10 +226,10 @@ public abstract class Profile {
     }
 
     public static Profile get(String path1, String path2, String... others) {
-        MergedProfile mergedProfile = new MergedProfile().merge(path1).merge(path2);
+        MergedProfile mergedProfile = new MergedProfile().merge(get(path1)).merge(get(path2));
         if (others != null && others.length > 0) {
             for (String path : others) {
-                mergedProfile.merge(path);
+                mergedProfile.merge(get(path));
             }
         }
         return mergedProfile;
@@ -313,7 +366,7 @@ class ProfileWrapper extends Profile {
     }
 
     private Profile get() {
-        return Profile.getByPath(path);
+        return PATH_PROFILE_MAP.get(path);
     }
 
     @Override
@@ -401,6 +454,7 @@ class MergedProfile extends Profile {
         return this;
     }
 
+    @Deprecated
     MergedProfile merge(String name) {
         if (name == null) return this;
         return merge(Profile.get(name));
