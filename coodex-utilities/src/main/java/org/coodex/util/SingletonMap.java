@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -30,19 +31,18 @@ import java.util.stream.Collectors;
 
 public class SingletonMap<K, V> {
 
+    private static final AtomicLong VERSION = new AtomicLong(Long.MIN_VALUE);
     private static final Singleton<ScheduledExecutorService> DEFAULT_SCHEDULED_EXECUTOR_SERVICE
             = Singleton.with(() -> ExecutorsHelper.newSingleThreadScheduledExecutor("singletonMap-DEFAULT"));
-
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(SingletonMap.class);
-
     private final Map<K, Value<K, V>> map;
-
     private final Function<K, V> function;
     private final K nullKey;
     private final long maxAge;
     private final BiConsumer<K, V> deathListener;
     private final boolean activeOnGet;
     private final ScheduledExecutorService scheduledExecutorService;
+    private long version = VERSION.get();
 
     private SingletonMap(Function<K, V> function,
                          K nullKey, boolean activeOnGet,
@@ -57,6 +57,13 @@ public class SingletonMap<K, V> {
         this.deathListener = deathListener;
         this.activeOnGet = activeOnGet;
         this.scheduledExecutorService = scheduledExecutorService;
+    }
+
+    /**
+     * 重置所有单例
+     */
+    public static void resetAll() {
+        VERSION.incrementAndGet();
     }
 
     public static <K, V> SingletonMapBuilder<K, V> builder() {
@@ -118,6 +125,14 @@ public class SingletonMap<K, V> {
 
     public V get(final K key, Function<K, V> function, long maxAge, BiConsumer<K, V> deathListener) {
         if (function == null) throw new NullPointerException("function is null.");
+        if (version != VERSION.get()) {
+            synchronized (map) {
+                if (version != VERSION.get()) {
+                    clear();
+                    version = VERSION.get();
+                }
+            }
+        }
         final K finalKey = key == null ? nullKey : key;
         if (!map.containsKey(finalKey)) {
             synchronized (map) {
@@ -127,14 +142,16 @@ public class SingletonMap<K, V> {
                     value.value = o;
                     if (maxAge > 0) {
                         value.debouncer = new Debouncer<>(k -> {
-                            log.debug("{} die.", k);
                             Value<K, V> v = map.remove(k);
-                            BiConsumer<K, V> listener = deathListener == null ? this.deathListener : deathListener;
-                            if (listener != null) {
-                                try {
-                                    listener.accept(k, v.value);
-                                } catch (Throwable th) {
-                                    log.warn("listener process failed: {}", listener, th);
+                            if (v != null) {
+                                log.debug("{} die.", k);
+                                BiConsumer<K, V> listener = deathListener == null ? this.deathListener : deathListener;
+                                if (listener != null) {
+                                    try {
+                                        listener.accept(k, v.value);
+                                    } catch (Throwable th) {
+                                        log.warn("listener process failed: {}", listener, th);
+                                    }
                                 }
                             }
 
@@ -209,6 +226,10 @@ public class SingletonMap<K, V> {
             if (map.size() > 0)
                 map.clear();
         }
+    }
+
+    public void reset() {
+        clear();
     }
 
 //    @lombok.Builder(access = AccessLevel.PUBLIC)

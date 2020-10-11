@@ -32,9 +32,15 @@ public class SingletonMapTest {
                 .maxAge(1000)
                 .build();
 
-        for (int i = 1; i < 50; i++) {
-            map.get("123");
-            Thread.sleep(i * 200);
-        }
+//        for (int i = 1; i < 50; i++) {
+//            map.get("123");
+//            Thread.sleep(i * 200);
+//        }
+        map.get("123");
+        map.get("456");
+        System.out.println(map.keySet().size());
+        SingletonMap.resetAll();
+        map.get("234");
+        System.out.println(map.keySet().size());
     }
 }

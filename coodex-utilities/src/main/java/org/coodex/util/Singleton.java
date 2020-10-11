@@ -16,18 +16,27 @@
 
 package org.coodex.util;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 public class Singleton<T> {
 
+    private final static AtomicLong VERSION = new AtomicLong(Long.MIN_VALUE);
     private final Supplier<T> supplier;
+    private long version = VERSION.get();
     private volatile T instance = null;
     private volatile boolean loaded = false;
-
 
     private Singleton(Supplier<T> supplier) {
         if (supplier == null) throw new NullPointerException("supplier MUST NOT be null.");
         this.supplier = supplier;
+    }
+
+    /**
+     * 重置所有单例
+     */
+    public static void resetAll() {
+        VERSION.incrementAndGet();
     }
 
     public static <T> Singleton<T> with(Supplier<T> supplier) {
@@ -36,15 +45,23 @@ public class Singleton<T> {
 
 
     public T get() {
-        if (!loaded) {
+        if (!loaded || version != VERSION.get()) {
             synchronized (this) {
-                if (!loaded) {
+                if (!loaded || version != VERSION.get()) {
                     instance = supplier.get();
+                    version = VERSION.get();
                     loaded = true;
                 }
             }
         }
         return instance;
+    }
+
+    /**
+     * 重置单例
+     */
+    public void reset() {
+        loaded = false;
     }
 
 }

@@ -140,21 +140,7 @@ public abstract class Profile {
     private static final ServiceLoader<ActiveProfilesProvider> ACTIVE_PROFILES_PROVIDER_SERVICE_LOADER =
             new LazyServiceLoader<ActiveProfilesProvider>() {
             };
-    private static final Singleton<List<String>> ACTIVE_PROFILES = Singleton.with(() -> {
-        List<String> activeProfiles = new ArrayList<>();
-        ACTIVE_PROFILES_PROVIDER_SERVICE_LOADER
-                .sorted()
-                .forEach(
-                        activeProfilesProvider -> {
-                            for (String s : activeProfilesProvider.getActiveProfiles()) {
-                                if (!activeProfiles.contains(s)) {
-                                    activeProfiles.add(s);
-                                }
-                            }
-                        }
-                );
-        return Collections.unmodifiableList(activeProfiles);
-    });
+
     static final SingletonMap<String, Profile> PATH_PROFILE_MAP = SingletonMap.<String, Profile>builder()
             .function(Profile::getByPath)
             .maxAge(RELOAD_INTERVAL_SINGLETON.get())
@@ -190,11 +176,27 @@ public abstract class Profile {
 
     }
 
+    private static List<String> getActiveProfiles() {
+        List<String> activeProfiles = new ArrayList<>();
+        ACTIVE_PROFILES_PROVIDER_SERVICE_LOADER
+                .sorted()
+                .forEach(
+                        activeProfilesProvider -> {
+                            for (String s : activeProfilesProvider.getActiveProfiles()) {
+                                if (!activeProfiles.contains(s)) {
+                                    activeProfiles.add(s);
+                                }
+                            }
+                        }
+                );
+        return Collections.unmodifiableList(activeProfiles);
+    }
+
     private static Profile getByPath(String path) {
         // 根据active.profiles设置包装所有Profile
         // return get(PROFILE_URLS.get(path));
 
-        List<URL> activeProfileUrls = ACTIVE_PROFILES.get().stream()
+        List<URL> activeProfileUrls = getActiveProfiles().stream()
                 .map(ap -> PROFILE_URLS.get(path + "-" + ap))
                 .filter(url -> !DEFAULT_URL.equals(url))
                 .collect(Collectors.toList());
