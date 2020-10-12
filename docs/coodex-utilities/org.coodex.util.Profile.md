@@ -36,6 +36,20 @@ profile是一个key-value的模型。
 
 Profile默认支持.properties，如果你的工程中引入了snakeyaml，则profile支持.yml|yaml文件
 
+类似于spring.active.profiles，支持多环境差异化配置。
+
+```txt
+-Dcoodex.active.profiles=a1,a2,a3
+```
+
+则 Profile.get("profileName") 时，相当于聚合了"profileName-a1","profileName-a2","profileName-a3","profileName"
+
+> 特别的：在`concrete-core-spring`中扩展了一个与`spring.active.profiles`一致的`ActiveProfilesProvider`，例如:
+>
+>`-Dspring.active.profiles=dev`
+>
+> 则`Profile.get("app")`相当于聚合了`app-dev`和`app`
+
 ## 替换符
 
 当某个键值引用其他资源的键值时，可使用替换符，格式为: `${refResource:key}`
