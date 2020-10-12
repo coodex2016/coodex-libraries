@@ -50,11 +50,9 @@ coodex SPI机制相对java SPI来讲，支持多种ServiceLoader，需要增加�
 
 coodex-utitlies中，基于java.util.ServiceLoader的Provider
 
-<!-- 
-#### org.coodex.concrete.common.ConcreteServiceLoaderProvider
+#### org.coodex.util.SpringServiceLoaderProvider
 
-concrete-core中，基于concrete BeanProvider的ServiceLoaderProvider
--->
+基于Spring的ServiceLoaderProvider，使用时放入JUS和spring容器即可
 
 ## SelectableServiceLoader&lt;Param_Type, T extends SelectableService&lt;Param_Type>>
 

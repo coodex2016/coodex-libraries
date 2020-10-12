@@ -44,7 +44,7 @@ Profile默认支持.properties，如果你的工程中引入了snakeyaml，则pr
 
 则 Profile.get("profileName") 时，相当于聚合了"profileName-a1","profileName-a2","profileName-a3","profileName"
 
-> 特别的：在`concrete-core-spring`中扩展了一个与`spring.active.profiles`一致的`ActiveProfilesProvider`，例如:
+> 特别的：在`org.coodex.spring`中扩展了一个与`spring.active.profiles`一致的`ActiveProfilesProvider`，使用时将其放入SPI范围即可例如:
 >
 >`-Dspring.active.profiles=dev`
 >
