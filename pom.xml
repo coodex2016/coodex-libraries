@@ -64,7 +64,7 @@
         <fastjson.version>1.2.68</fastjson.version>
         <slf4j.version>1.7.30</slf4j.version>
         <log4j2.version>2.13.0</log4j2.version>
-        <snakeyaml.version>1.26</snakeyaml.version>
+        <snakeyaml.version>1.32</snakeyaml.version>
         <cglib.version>3.2.12</cglib.version>
         <freemarker.version>2.3.28</freemarker.version>
     </properties>
